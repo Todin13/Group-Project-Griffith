@@ -7,68 +7,77 @@ if [[ $# -ne 4 ]]; then
     exit 1
 fi
 
-# Arguments
 INPUT="$1"
 PREFIX="$2"
 PATTERN="$3"
 START_LINE="$4"
 OUTPUT_DIR="${PREFIX}s"
 
-# Create output directory
 mkdir -p "$OUTPUT_DIR"
 
-# Line tracking
+# Track lines
 LINE_NUM=0
 COUNT=0
-BUFFER=""
-LINES_BEFORE_START=()
-
-# Track intro/preface occurrences
-INTRO_LINES=()
 declare -A LINE_CONTENT
+INTRO_LINES=()
+TOTAL_LINES=0
+CONCLUSION_LINE=0
+BIBLIO_LINE=0
 
-# Pass 1: Read all lines and cache
+# Step 1: Read all lines, collect intro and store line content
 while IFS= read -r line; do
     ((LINE_NUM++))
     LINE_CONTENT[$LINE_NUM]="$line"
 
     if (( LINE_NUM < START_LINE )); then
-        LINES_BEFORE_START+=("$LINE_NUM")
-
         if [[ "$line" =~ [Ii]ntroduction || "$line" =~ [Pp]reface ]]; then
             INTRO_LINES+=("$LINE_NUM")
+        fi
+    elif (( LINE_NUM >= START_LINE )); then
+        if [[ $CONCLUSION_LINE -eq 0 && "$line" =~ [Cc]onclusion ]]; then
+            CONCLUSION_LINE=$LINE_NUM
+        elif [[ $BIBLIO_LINE -eq 0 && "$line" =~ [Bb]ibliograph(y|ie) ]]; then
+            BIBLIO_LINE=$LINE_NUM
         fi
     fi
 done < "$INPUT"
 
-# Handle introduction / summary
+TOTAL_LINES=$LINE_NUM
+
+# Step 2: Introduction & Summary logic
 if (( ${#INTRO_LINES[@]} >= 1 )); then
     FIRST_INTRO=${INTRO_LINES[0]}
     LAST_INTRO=${INTRO_LINES[-1]}
 
-    # Build introduction buffer from LAST_INTRO to START_LINE - 1
     INTRO_BUFFER=""
     for ((i=LAST_INTRO; i<START_LINE; i++)); do
         INTRO_BUFFER+="${LINE_CONTENT[$i]}"$'\n'
     done
     echo -n "$INTRO_BUFFER" > "${OUTPUT_DIR}/introduction.txt"
-    echo "📝 Saved last introduction section to '${OUTPUT_DIR}/introduction.txt'"
 
-    # If two or more intros, build summary from FIRST_INTRO to LAST_INTRO
     if (( ${#INTRO_LINES[@]} >= 2 )); then
         SUMMARY_BUFFER=""
-        for ((i=FIRST_INTRO; i<LAST_INTRO; i++)); do
+        for ((i=FIRST_INTRO; i<=LAST_INTRO; i++)); do
             SUMMARY_BUFFER+="${LINE_CONTENT[$i]}"$'\n'
         done
         echo -n "$SUMMARY_BUFFER" > "${OUTPUT_DIR}/summary.txt"
-        echo "📝 Saved summary section to '${OUTPUT_DIR}/summary.txt'"
     fi
 fi
 
-# Pass 2: Chapter splitting from START_LINE onward
-COUNT=0
+# Step 3: Split chapters (until Conclusion or end)
+
+if (( CONCLUSION_LINE > 0 )); then
+    END_SPLIT_LINE=$(( CONCLUSION_LINE - 1 ))
+elif (( BIBLIO_LINE > 0 )); then
+    END_SPLIT_LINE=$(( BIBLIO_LINE - 1 ))
+else
+    END_SPLIT_LINE=$TOTAL_LINES
+fi
+
 BUFFER=""
-for ((i=START_LINE; i<=LINE_NUM; i++)); do
+COUNT=0
+
+for ((i=START_LINE; i<=END_SPLIT_LINE; i++)); do
     line="${LINE_CONTENT[$i]}"
     if [[ "$line" =~ $PATTERN ]]; then
         if [[ $COUNT -ne 0 ]]; then
@@ -81,10 +90,35 @@ for ((i=START_LINE; i<=LINE_NUM; i++)); do
     fi
 done
 
-# Write final chapter
 if [[ -n "$BUFFER" ]]; then
     echo "$BUFFER" > "${OUTPUT_DIR}/${PREFIX}${COUNT}.txt"
 fi
 
-echo "✅ Done. Created $COUNT chapter files in '$OUTPUT_DIR/', starting from line $START_LINE."
+# Step 4: Save Conclusion (between Conclusion and Bibliography)
+if (( CONCLUSION_LINE > 0 && (BIBLIO_LINE == 0 || BIBLIO_LINE > CONCLUSION_LINE) )); then
+    CONCLUSION_BUFFER=""
+    LAST_CONCL_LINE=$(( BIBLIO_LINE > 0 ? BIBLIO_LINE - 1 : TOTAL_LINES ))
+
+    for ((i=CONCLUSION_LINE; i<=LAST_CONCL_LINE; i++)); do
+        CONCLUSION_BUFFER+="${LINE_CONTENT[$i]}"$'\n'
+    done
+    echo -n "$CONCLUSION_BUFFER" > "${OUTPUT_DIR}/conclusion.txt"
+fi
+
+# Step 5: Save Bibliography (from Bibliography to end)
+if (( BIBLIO_LINE > 0 )); then
+    BIBLIO_BUFFER=""
+    for ((i=BIBLIO_LINE; i<=TOTAL_LINES; i++)); do
+        BIBLIO_BUFFER+="${LINE_CONTENT[$i]}"$'\n'
+    done
+    echo -n "$BIBLIO_BUFFER" > "${OUTPUT_DIR}/bibliography.txt"
+fi
+
+# ✅ Final report
+echo "✅ Done."
+echo "→ Chapters created: $COUNT"
+[[ -f "${OUTPUT_DIR}/introduction.txt" ]] && echo "→ Saved: introduction.txt"
+[[ -f "${OUTPUT_DIR}/summary.txt" ]] && echo "→ Saved: summary.txt"
+[[ -f "${OUTPUT_DIR}/conclusion.txt" ]] && echo "→ Saved: conclusion.txt"
+[[ -f "${OUTPUT_DIR}/bibliography.txt" ]] && echo "→ Saved: bibliography.txt"
 
