@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Check arguments
-if [[ $# -ne 4 ]]; then
-    echo "Usage: $0 <input_file.txt> <output_prefix> <split_pattern> <start_line>"
-    echo "Example: $0 book.txt chapter '^Chapter ' 10"
+# Check arguments (4 mandatory, 1 optional)
+if [[ $# -lt 4 || $# -gt 5 ]]; then
+    echo "Usage: $0 <input_file.txt> <output_prefix> <split_pattern> <start_line> [end_line]"
+    echo "Example: $0 book.txt chapter '^Chapter ' 10 5000"
     exit 1
 fi
 
@@ -13,6 +13,13 @@ PATTERN="$3"
 START_LINE="$4"
 OUTPUT_DIR="${PREFIX}s"
 
+# Optional end line
+if [[ $# -eq 5 ]]; then
+    END_LINE="$5"
+else
+    END_LINE=0
+fi
+
 mkdir -p "$OUTPUT_DIR"
 
 # Track lines
@@ -20,14 +27,18 @@ LINE_NUM=0
 COUNT=0
 declare -A LINE_CONTENT
 INTRO_LINES=()
-TOTAL_LINES=0
 CONCLUSION_LINE=0
 BIBLIO_LINE=0
 
-# Step 1: Read all lines, collect intro and store line content
+# Step 1: Read all lines, collect intro and store line content, stop reading at END_LINE if specified
 while IFS= read -r line; do
     ((LINE_NUM++))
     LINE_CONTENT[$LINE_NUM]="$line"
+
+    # Stop if we've read up to optional END_LINE
+    if [[ $END_LINE -gt 0 && $LINE_NUM -ge $END_LINE ]]; then
+        break
+    fi
 
     if (( LINE_NUM < START_LINE )); then
         if [[ "$line" =~ [Ii]ntroduction || "$line" =~ [Pp]reface ]]; then
@@ -42,7 +53,10 @@ while IFS= read -r line; do
     fi
 done < "$INPUT"
 
-TOTAL_LINES=$LINE_NUM
+# If no END_LINE specified, use last line read
+if [[ $END_LINE -eq 0 ]]; then
+    END_LINE=$LINE_NUM
+fi
 
 # Step 2: Introduction & Summary logic
 if (( ${#INTRO_LINES[@]} >= 1 )); then
@@ -71,7 +85,7 @@ if (( CONCLUSION_LINE > 0 )); then
 elif (( BIBLIO_LINE > 0 )); then
     END_SPLIT_LINE=$(( BIBLIO_LINE - 1 ))
 else
-    END_SPLIT_LINE=$TOTAL_LINES
+    END_SPLIT_LINE=$END_LINE
 fi
 
 BUFFER=""
@@ -97,7 +111,7 @@ fi
 # Step 4: Save Conclusion (between Conclusion and Bibliography)
 if (( CONCLUSION_LINE > 0 && (BIBLIO_LINE == 0 || BIBLIO_LINE > CONCLUSION_LINE) )); then
     CONCLUSION_BUFFER=""
-    LAST_CONCL_LINE=$(( BIBLIO_LINE > 0 ? BIBLIO_LINE - 1 : TOTAL_LINES ))
+    LAST_CONCL_LINE=$(( BIBLIO_LINE > 0 ? BIBLIO_LINE - 1 : END_LINE ))
 
     for ((i=CONCLUSION_LINE; i<=LAST_CONCL_LINE; i++)); do
         CONCLUSION_BUFFER+="${LINE_CONTENT[$i]}"$'\n'
@@ -108,7 +122,7 @@ fi
 # Step 5: Save Bibliography (from Bibliography to end)
 if (( BIBLIO_LINE > 0 )); then
     BIBLIO_BUFFER=""
-    for ((i=BIBLIO_LINE; i<=TOTAL_LINES; i++)); do
+    for ((i=BIBLIO_LINE; i<=END_LINE; i++)); do
         BIBLIO_BUFFER+="${LINE_CONTENT[$i]}"$'\n'
     done
     echo -n "$BIBLIO_BUFFER" > "${OUTPUT_DIR}/bibliography.txt"
