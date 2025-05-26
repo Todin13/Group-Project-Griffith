@@ -2,3 +2,5 @@
 .venv
 poetry.lock
 .python-version
+results/*
+pinecone_records.json

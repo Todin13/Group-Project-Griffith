@@ -8,10 +8,6 @@ run:
 	@echo "Starting the app"
 	poetry run python code/main.py
 
-splitting:
-	@echo "Starting the splitting"
-	poetry run python 
-
 check:
 	@echo "Running Black"
 	poetry run black --check .
