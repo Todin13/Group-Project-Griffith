@@ -3,11 +3,21 @@ from transformers import pipeline
 from pinecone import Pinecone
 import os
 from dotenv import load_dotenv
+import logging
 
 # Load env vars
 load_dotenv()
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 INDEX_NAME = "griffith-college-chunks"
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+NAMESPACE = "200-history"
+
+# Configure logging
+if LOG_LEVEL == "DEBUG":
+    logging.basicConfig(filename="debug.log", level=logging.DEBUG, filemode='a',
+                        format='%(asctime)s - %(message)s')
+else:
+    logging.basicConfig(level=logging.INFO)
 
 # Initialize Pinecone client and index
 pc = Pinecone(api_key=PINECONE_API_KEY)
@@ -26,10 +36,10 @@ system_message = {
     "content": "You are a helpful assistant that specializes in the history of Griffith College Dublin from 1813 to 2013. Answer questions using the retrieved historical context.",
 }
 
-def get_context_retrieval(query, top_k=4):
-    # Search and rerank results
+
+def get_context_retrieval(query, top_k=10):
     reranked_results = dense_index.search(
-        namespace="example-namespace",  # replace with your actual namespace
+        namespace=NAMESPACE,
         query={
             "top_k": top_k,
             "inputs": {
@@ -43,12 +53,18 @@ def get_context_retrieval(query, top_k=4):
         }
     )
 
-    hits = reranked_results['result']['hits']
-    # Join the retrieved chunk_texts as context
-    context = "\n\n".join(hit['fields']['chunk_text'] for hit in hits)
-    return context
+    hits = reranked_results['result'].get('hits', [])
+    context_chunks = [hit['fields'].get('chunk_text', '') for hit in hits]
 
-print("🏫 Griffith HistoryBot is ready. Ask about the college's history! Type 'exit' to quit.")
+    # Extract usage metrics
+    token_count = reranked_results.get('usage', {}).get('embed_total_tokens', 'N/A')
+    read_units = reranked_results.get('usage', {}).get('read_units', 'N/A')
+    rerank_units = reranked_results.get('usage', {}).get('rerank_units', 'N/A')
+
+    return context_chunks, token_count, read_units, rerank_units
+
+
+print("Griffith HistoryBot is ready. Ask about the college's history! Type 'exit' to quit.")
 
 while True:
     user_input = input("\n💬 You: ")
@@ -56,8 +72,9 @@ while True:
         print("👋 Goodbye! Stay curious about Griffith College.")
         break
 
-    # Retrieve context using reranked search
-    context = get_context_retrieval(user_input)
+    # Get context and usage
+    context_chunks, tokens, read_units, rerank_units = get_context_retrieval(user_input, top_k=5)
+    context = "\n\n".join(context_chunks)
 
     messages = [
         system_message,
@@ -83,4 +100,18 @@ while True:
         top_p=0.95,
     )
 
-    print("\n📚 GriffithBot:", outputs[0]["generated_text"][len(prompt):].strip())
+    answer = outputs[0]["generated_text"][len(prompt):].strip()
+    print("\n📚 GriffithBot:", answer)
+
+    # Debug logging
+    if LOG_LEVEL == "DEBUG":
+        log_message = (
+            f"\nQUESTION: {user_input}\n"
+            f"TOKENS USED: {tokens}\n"
+            f"READ UNITS USED: {read_units}\n"
+            f"RERANK UNITS USED: {rerank_units}\n"
+            f"RETRIEVED CHUNKS:\n" +
+            "\n---\n".join(context_chunks) +
+            f"\nANSWER:\n{answer}\n"
+        )
+        logging.debug(log_message)

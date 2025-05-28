@@ -11,4 +11,4 @@ pdftotext to get the text \
 
 # Model Choice
 
-We choose this model because it's light and we can perform RAG (Retrieval Augmented Generation) on it.
+- [TinyLlama](https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0) first choice due to it's small size, so beneficial for a small deployment whith small amount of resources but small amount of token in return, so with the context from rag take time to answer around 30 seconds

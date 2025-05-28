@@ -5,3 +5,4 @@ poetry.lock
 results/*
 griffith_history/*
 pinecone_records.json
+debug.log
