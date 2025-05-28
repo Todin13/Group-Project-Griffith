@@ -3,4 +3,5 @@
 poetry.lock
 .python-version
 results/*
+griffith_history/*
 pinecone_records.json

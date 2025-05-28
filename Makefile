@@ -8,6 +8,15 @@ run:
 	@echo "Starting the app"
 	poetry run python code/main.py
 
+populate:
+	poetry run python code/pinecone/init_rag_db.py
+
+purge:
+	poetry run python code/pinecone/delete_rag_db.py
+
+data-transfo:
+	./code/pdf_manipulation/pdf_to_chunk.sh
+
 check:
 	@echo "Running Black"
 	poetry run black --check .

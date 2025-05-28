@@ -6,7 +6,7 @@ OUTPUT="pinecone_records.json"
 # Function to split text into chunks of max 250 words ending at a period
 split_text() {
     local text="$1"
-    local max_words=250
+    local max_words=50
 
     echo "$text" | perl -e '
         use strict;
