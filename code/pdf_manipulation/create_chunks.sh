@@ -6,34 +6,47 @@ OUTPUT="pinecone_records.json"
 # Function to split text into chunks of max 50 words ending at a period
 split_text() {
     local text="$1"
-    local max_words=50
+    local min_words=50
 
     echo "$text" | perl -e '
         use strict;
         use warnings;
 
+        # Read all of STDIN
         my $text = do { local $/; <STDIN> };
-        $text =~ s/\n/ /g;
+
+        # Replace newlines with custom marker
+        $text =~ s/\n/ <<<NL>>> /g;
+
+        # Normalize whitespace
         $text =~ s/\s+/ /g;
 
-        my @sentences = split(/(?<=\.)\s+/, $text);
+        # Split at the end of paragraph
+        # Split only at: period followed by optional spaces and <<<NL>>>
+        my @sentences = split(/(?<=\.)\s*<<<NL>>>/, $text);
 
         my @chunks;
         my $current_chunk = "";
         my $current_words = 0;
 
         foreach my $sent (@sentences) {
+            $sent =~ s/<<<NL>>>//g;      # Clean marker
+            $sent =~ s/^\s+|\s+$//g;     # Trim whitespace
+            next unless $sent;
+
             my $sent_words = scalar(split(/\s+/, $sent));
 
-            if ($current_words + $sent_words <= '"$max_words"') {
-                $current_chunk .= $sent . " ";
-                $current_words += $sent_words;
-            } else {
+            $current_chunk .= $sent . " ";
+            $current_words += $sent_words;
+
+            if ($current_words > '"$min_words"') {
                 $current_chunk =~ s/\s+$//;
                 push @chunks, $current_chunk;
-                $current_chunk = $sent . " ";
-                $current_words = $sent_words;
+
+                $current_chunk = "";
+                $current_words = 0;
             }
+
         }
 
         $current_chunk =~ s/\s+$//;
