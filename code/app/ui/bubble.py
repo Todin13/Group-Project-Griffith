@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QLabel, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QLabel, QVBoxLayout, QWidget, QSizePolicy
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 
@@ -8,10 +8,16 @@ def create_chat_bubble(text, is_user=True, bot_name="GriffithAI"):
     bubble.setWordWrap(True)
     bubble.setFont(QFont("Arial", 11))
     bubble.setTextInteractionFlags(Qt.TextSelectableByMouse)
+
+    # Allow resizing so it wraps correctly
+    bubble.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+    bubble.setMinimumWidth(200)  # allow wider bubbles
+    bubble.setMaximumWidth(500)  # prevent full screen bubbles
+
     bubble.setStyleSheet(f"""
         QLabel {{
             background-color: {"#A52A2A" if is_user else "#808080"};
-            color: {'white'};
+            color: white;
             border-radius: 15px;
             padding: 12px;
         }}
