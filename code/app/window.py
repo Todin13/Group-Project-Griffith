@@ -77,9 +77,6 @@ class ChatApp(QWidget):
         self.layout.addWidget(self.chatbar_widget)
 
 
-       
-
-
     def animate_chatbar_transition(self):
         # We'll animate the geometry of the chatbar_widget
 
@@ -104,42 +101,24 @@ class ChatApp(QWidget):
         if not user_input:
             return
 
-        # On first message, setup the chat UI if not done yet
         if self.chat_area is None:
             self.setup_chat_ui()
 
-        # Display user message
         self.chat_area.addWidget(create_chat_bubble(user_input, is_user=True))
         self.input_field.clear()
 
-        # Add typing indicator
         self.typing_label = create_chat_bubble("GriffAI is typing...", is_user=False, bot_name="GriffithAI")
         self.chat_area.addWidget(self.typing_label)
         self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
 
-        QTimer.singleShot(100, lambda: ask_model(user_input))
+        # Fetch model response and display it
+        QTimer.singleShot(100, lambda: self.fetch_and_display_response(user_input))
 
 
-
-    def generate_response(self, user_input):
-        docs = self.retriever.get_relevant_documents(user_input)
-        context = "\n\n".join([doc.page_content for doc in docs])
-
-        prompt = f"""You are an assistant that answers only using the context below.
-                If the answer is not found in the context, say "I don't know".
-
-                Context:
-                {context}
-
-                Question: {user_input}
-                Answer:
-                """
-        response = self.llm(prompt).strip()
-
-        # Remove typing indicator
+    def fetch_and_display_response(self, user_input):
+        response = ask_model(user_input).strip()
         self.typing_label.deleteLater()
 
-        # Setup animation
         self.bot_response = response
         self.char_index = 0
         self.animated_bubble = create_chat_bubble("", is_user=False, bot_name="GriffithAI")
@@ -147,10 +126,10 @@ class ChatApp(QWidget):
         self.chat_area.addWidget(self.animated_bubble)
         self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
 
-        # Start typing animation
         self.typing_timer = QTimer()
         self.typing_timer.timeout.connect(self.animate_typing)
-        self.typing_timer.start(15)  # ms per character
+        self.typing_timer.start(15)
+
 
     def animate_typing(self):
         if self.char_index < len(self.bot_response):
