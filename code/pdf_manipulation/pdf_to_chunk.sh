@@ -17,6 +17,8 @@ EOF
 
 # Default behavior
 DELETE_UNCLEANED=true
+IMAGE_DESC_FILE="results/image_description.txt"
+> "$IMAGE_DESC_FILE"  # clear or create
 
 # Parse arguments
 for arg in "$@"; do
@@ -41,6 +43,10 @@ done
 
 # cleaning files one by one
 for file in results/*; do
+  [[ -f "$file" ]] || continue
+  echo "Processing $file"
+
+  # run cleaning scrit
   ./code/pdf_manipulation/clean.sh "$file"
 done
 
@@ -68,6 +74,19 @@ for file in results/result*; do
   tail -n +3 "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
   mv "$file" "results/${newname}.txt"
   echo "Renamed and trimmed $file -> results/${newname}.txt"
+done
+
+# remove the image description
+for file in results/*; do
+  [[ -f "$file" ]] || continue
+  echo "Processing $file"
+
+  # extract image descriptions and append to central file
+  perl -00 -ne 'print if (() = /\n/g) < 11 && /(\(|above:|right:|left:|below:|view|pictured)/i' "$file" >> "$IMAGE_DESC_FILE"
+
+  # remove them from the original and overwrite
+  perl -00 -ne 'print unless (() = /\n/g) < 11 && /(\(|above:|right:|left:|below:|view|pictured)/i' "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
+
 done
 
 ./code/pdf_manipulation/create_chunks.sh results/

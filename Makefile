@@ -15,6 +15,7 @@ purge:
 	poetry run python code/pinecone/delete_rag_db.py
 
 data-transfo:
+	pdftotext Griffith\ College\ 200\ Years.pdf
 	./code/pdf_manipulation/pdf_to_chunk.sh
 
 check:
@@ -27,3 +28,6 @@ check:
 
 style:
 	poetry run black .
+
+login:
+	poetry run huggingface-cli login

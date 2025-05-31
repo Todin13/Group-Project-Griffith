@@ -20,10 +20,7 @@ if not pc.has_index(INDEX_NAME):
         name=INDEX_NAME,
         cloud="aws",
         region="us-east-1",
-        embed={
-            "model": "llama-text-embed-v2",
-            "field_map": {"text": "chunk_text"}
-        }
+        embed={"model": "llama-text-embed-v2", "field_map": {"text": "chunk_text"}},
     )
     print(f"Created index '{INDEX_NAME}' with embedded model")
 else:
@@ -41,16 +38,20 @@ dense_index = pc.Index(INDEX_NAME)
 # Prepare records for upsert in the correct format (id, metadata, no vector values needed)
 upsert_records = []
 for record in records:
-    upsert_records.append({
-    "_id": record["_id"],
-    "chunk_text": record.get("chunk_text", ""),
-    "category": record.get("category", ""),
-    })
+    upsert_records.append(
+        {
+            "_id": record["_id"],
+            "chunk_text": record.get("chunk_text", ""),
+            "category": record.get("category", ""),
+        }
+    )
+
 
 def batch_iterable(iterable, batch_size=96):
     """Yield successive batch_size-sized chunks from iterable."""
     for i in range(0, len(iterable), batch_size):
-        yield iterable[i:i + batch_size]
+        yield iterable[i : i + batch_size]
+
 
 # Upsert in batches of 96 or less
 for batch in batch_iterable(upsert_records, batch_size=96):
@@ -60,6 +61,7 @@ print(f"Upserted {len(upsert_records)} records to index '{INDEX_NAME}'")
 
 # Wait for the upserted vectors to be indexed
 import time
+
 time.sleep(10)
 
 # View stats for the index

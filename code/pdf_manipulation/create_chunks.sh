@@ -3,7 +3,7 @@
 DIR="${1:-.}"
 OUTPUT="pinecone_records.json"
 
-# Function to split text into chunks of max 250 words ending at a period
+# Function to split text into chunks of max 50 words ending at a period
 split_text() {
     local text="$1"
     local max_words=50
@@ -51,26 +51,42 @@ find "$DIR" -type f -name "*.txt" | while read -r filepath; do
     filename=$(basename "$filepath" .txt)
     content=$(<"$filepath")
 
-    # Get chunks separated by |||
-    chunks=$(split_text "$content")
+    # Skip completely if image_description or summary_cleaned
+    if [[ "$filename" == "image_description" || "$filename" == "summary_cleaned" ]]; then
+        continue
+    fi
 
-    # Split chunks into array using ||| as delimiter
+    # Special case: handle bibliography_cleaned as a single cleaned entry
+    if [[ "$filename" == "bibliography_cleaned" ]]; then
+        clean_chunk=$(echo "$content" | tr -d '\r' | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        if [[ -n "$clean_chunk" ]]; then
+            if $first; then
+                first=false
+            else
+                echo "," >> "$OUTPUT"
+            fi
+
+            echo "  {" >> "$OUTPUT"
+            echo "    \"_id\": \"${filename}_1\"," >> "$OUTPUT"
+            echo "    \"chunk_text\": \"$clean_chunk\"," >> "$OUTPUT"
+            echo "    \"category\": \"$filename\"" >> "$OUTPUT"
+            echo "  }" >> "$OUTPUT"
+        fi
+        continue
+    fi
+
+    # Process normally: split into chunks
+    chunks=$(split_text "$content")
     IFS='|||' read -r -a chunk_array <<< "$chunks"
 
     idx=1
     for chunk in "${chunk_array[@]}"; do
-    
-         # Remove leading/trailing whitespace and newlines from chunk
-    clean_chunk=$(echo "$chunk" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        clean_chunk=$(echo "$chunk" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
-    # Skip if empty after cleaning
-    if [[ -z "$clean_chunk" ]]; then
-        continue
-    fi
-
-    # # Escape chunk content for JSON using cleaned chunk
-    # escaped_chunk=$(echo "$clean_chunk" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')
-
+        # Skip empty chunks
+        if [[ -z "$clean_chunk" ]]; then
+            continue
+        fi
 
         if $first; then
             first=false
@@ -89,5 +105,4 @@ find "$DIR" -type f -name "*.txt" | while read -r filepath; do
 done
 
 echo "]" >> "$OUTPUT"
-
 echo "Records saved to $OUTPUT"
