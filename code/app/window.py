@@ -3,17 +3,13 @@ from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QRect
 from app.ui.chatbar import create_chat_bar
 from app.ui.topbar import create_top_bar
 from app.ui.bubble import create_chat_bubble
-from app.core.model_loader import  load_vectorstore, load_llm
-
+from app.core.use_model import ask_model
 
 class ChatApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Griffith College History Assistant")
         self.setMinimumSize(500, 600)
-
-        self.llm = load_llm()
-        self.retriever = load_vectorstore()
 
         self.init_ui()
 
@@ -121,7 +117,7 @@ class ChatApp(QWidget):
         self.chat_area.addWidget(self.typing_label)
         self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
 
-        QTimer.singleShot(100, lambda: self.generate_response(user_input))
+        QTimer.singleShot(100, lambda: ask_model(user_input))
 
 
 
