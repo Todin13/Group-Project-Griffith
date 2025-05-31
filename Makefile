@@ -9,6 +9,8 @@ run:
 
 pinecone-populate:
 	poetry run python -m src.pinecone.init_rag_db
+	echo "Running Griffith College Chatbot..."
+	poetry run python code/main.py
 
 pinecone-purge:
 	poetry run python -m src.pinecone.delete_rag_db

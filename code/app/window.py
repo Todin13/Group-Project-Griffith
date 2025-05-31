@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QRect
 from app.ui.chatbar import create_chat_bar
 from app.ui.topbar import create_top_bar
 from app.ui.bubble import create_chat_bubble
-from app.core.use_model import ask_model
+from core.use_model import ask_model
 
 class ChatApp(QWidget):
     def __init__(self):
