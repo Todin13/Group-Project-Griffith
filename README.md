@@ -8,8 +8,8 @@ To extract and prepare the content from PDF files, the project uses several shel
 
 | Tool / Script                                                | Purpose                                                           |
 | ------------------------------------------------------------ | ----------------------------------------------------------------- |
-| `pdfimages`                                                  | Extract images from PDFs                                          |
-| `pdftotext`                                                  | Extract raw text from PDFs                                        |
+| [pdfimages](https://www.xpdfreader.com/pdfimages-man.html)   | Extract images from PDFs                                          |
+| [pdftotext](https://www.xpdfreader.com/pdftotext-man.html)   | Extract raw text from PDFs                                        |
 | [clean.sh](./code/pdf_manipulation/clean.sh)                 | Clean and sanitize the extracted text                             |
 | [split_txt.sh](./code/pdf_manipulation/split_txt.sh)         | Split text into chapters, summaries, and bibliographies           |
 | [create_chunks.sh](./code/pdf_manipulation/create_chunks.sh) | Break the text into chunks suitable for embedding                 |
@@ -81,7 +81,7 @@ Install Python 3.13 and dependencies:
 
 5.  (Optional) To enable debug logging, add this to your `.env` file:
 
-         LOG_LEVEL="DEBUG"
+         LOG_LEVEL="D│ ├── faiss/ # FAISS-based local vector database alternativeEBUG"
 
 6.  Run the application:
 
@@ -96,3 +96,27 @@ Install Python 3.13 and dependencies:
 | **LLMs**       | TinyLlama (lightweight), LLaMA 3.1-8B (advanced)            |
 | **License**    | Required for LLaMA 3.1-8B usage via Hugging Face            |
 | **Setup**      | Python 3.13 via pyenv, Poetry for dependency management     |
+
+## 📁 Project Structure
+
+The project is organized as follows:
+
+        root/
+        ├── code/
+        │   ├── app/                    # Frontend logic, app design, and integration principles
+        │   ├── core/                   # Core backend logic: RAG orchestration and model interaction
+        │   ├── pdf_manipulation/       # Scripts to clean, split, and chunk PDF data
+        │   ├── pinecone/               # Pinecone vector DB configuration and indexing logic
+        │   ├── faiss/                  # FAISS-based local vector database alternative
+        │   └── main.py                 # Entry point: application bootstrap and launch logic
+        │
+        ├── .env.example                # Example environment configuration file
+        ├── .gitignore                  # Git configuration to ignore local/dev files
+        ├── Griffith College 200 Years.pdf # Source document used in the RAG pipeline
+        ├── LICENSE                     # Open-source project license
+        ├── LLAMA 3.2 COMMUNITY LICENSE AGREEMENT  # Required license agreement for using LLaMA 3.2 models
+        ├── Makefile                    # Automation commands for setup, data processing, and deployment
+        ├── pyproject.toml              # Poetry project configuration and dependencies
+        ├── README.md                   # Project documentation
+
+Each directory and file is purposefully designed to keep the app modular, easy to maintain, and scalable for LLM-powered applications using Retrieval-Augmented Generation (RAG).
