@@ -4,11 +4,8 @@ prepare:
 	poetry install --no-root
 
 run:
-	@echo "Starting the app"
-	poetry run python code/use_model.py
-
 	echo "Running Griffith College Chatbot..."
-	python code/main.py
+	poetry run python code/main.py
 
 populate:
 	poetry run python code/pinecone/init_rag_db.py
