@@ -47,7 +47,7 @@ To extract and prepare the content from PDF files, the project uses several shel
 ### 🔸 [Mistral-Small-3.1-24B-Instruct](https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503) — _In Hugging Face Cloud_
 
 - ✅ 24B parameters — strong instruction-following and reasoning capabilities
-- 🌐 **Cloud-hosted** model: requires an active internet connection
+- 🌐 **Cloud-hosted** model: requires an active internet connection and only a small part of the request are free
 - ⚠️ Cannot run locally due to model size and hosting constraints
 
 ## 🚀 Initialize the App
