@@ -1,35 +1,21 @@
 from pinecone import Pinecone
-import os
-from dotenv import load_dotenv
-import logging
 import time
+import logging
+import src.config as config
 
-# Load env vars
-load_dotenv()
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-INDEX_NAME = "griffith-college-chunks"
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-NAMESPACE = "200-history"
-
-# Configure logging
-if LOG_LEVEL == "DEBUG":
-    logging.basicConfig(
-        filename="debug.log",
-        level=logging.DEBUG,
-        filemode="a",
-        format="%(asctime)s - %(message)s",
-    )
-else:
-    logging.basicConfig(level=logging.INFO)
+# Setup logging
+config.setup_logging()
+logger = logging.getLogger(__name__)
 
 # Initialize Pinecone client and index
-pc = Pinecone(api_key=PINECONE_API_KEY)
-dense_index = pc.Index(INDEX_NAME)
+pc = Pinecone(api_key=config.PINECONE_API_KEY)
+dense_index = pc.Index(config.PINECONE_INDEX_NAME)
 
 def get_context_retrieval(query, top_k=10):
     start_time = time.time()
+
     reranked_results = dense_index.search(
-        namespace=NAMESPACE,
+        namespace=config.PINECONE_NAMESPACE,
         query={"top_k": top_k, "inputs": {"text": query}},
         rerank={
             "model": "bge-reranker-v2-m3",
@@ -37,6 +23,7 @@ def get_context_retrieval(query, top_k=10):
             "rank_fields": ["chunk_text"],
         },
     )
+
     end_time = time.time()
     elapsed = end_time - start_time
 
@@ -47,14 +34,14 @@ def get_context_retrieval(query, top_k=10):
     read_units = reranked_results.get("usage", {}).get("read_units", "N/A")
     rerank_units = reranked_results.get("usage", {}).get("rerank_units", "N/A")
 
-    if LOG_LEVEL == "DEBUG":
-        logging.debug(f"Pinecone search start: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}")
-        logging.debug(f"Pinecone search end: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))}")
-        logging.debug(f"Pinecone search duration: {elapsed:.3f} seconds")
-        logging.debug(f"Pinecone retrieved hits count: {len(hits)}")
+    if config.LOG_LEVEL == "DEBUG":
+        logger.debug(f"Pinecone search started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}")
+        logger.debug(f"Pinecone search ended at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))}")
+        logger.debug(f"Pinecone search duration: {elapsed:.3f} seconds")
+        logger.debug(f"Pinecone retrieved {len(hits)} hits")
         for i, hit in enumerate(hits, 1):
             chunk_text = hit["fields"].get("chunk_text", "<no chunk_text>")
             score = hit.get("score", "N/A")
-            logging.debug(f"Hit #{i} (score: {score}): {chunk_text}")
+            logger.debug(f"Hit #{i} (score: {score}): {chunk_text}")
 
     return context_chunks, token_count, read_units, rerank_units

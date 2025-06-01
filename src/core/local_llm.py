@@ -1,30 +1,18 @@
 import torch
 from transformers import pipeline
-import os
-from dotenv import load_dotenv
-import logging
 import time
+import logging
+import src.config as config
 from src.core.pinecone_retrival import get_context_retrieval
 
-# Load env vars
-load_dotenv()
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+# Setup logging
+config.setup_logging()
+logger = logging.getLogger(__name__)
 
-# Configure logging
-if LOG_LEVEL == "DEBUG":
-    logging.basicConfig(
-        filename="debug.log",
-        level=logging.DEBUG,
-        filemode="a",
-        format="%(asctime)s - %(message)s",
-    )
-else:
-    logging.basicConfig(level=logging.INFO)
-
-# Llama 3.1-8B generation pipeline
+# Llama 3.2-3B generation pipeline
 pipe = pipeline(
     "text-generation",
-    model="meta-llama/Llama-3.2-3B-Instruct",
+    model=config.LOCAL_MODEL,
     torch_dtype=torch.bfloat16,
     device_map="auto",
 )
@@ -34,24 +22,15 @@ system_message = {
     "content": "You are a helpful assistant that specializes in the history of the Griffith College campus, including its buildings, people, and events. Answer questions using the retrieved historical context.",
 }
 
-
-print(
-    "Griffith HistoryBot is ready. Ask about the campus' history! Type 'exit' to quit."
-)
-
-while True:
-    user_input = input("\n💬 You: ")
-    if user_input.lower() in {"exit", "quit"}:
-        print("👋 Goodbye! Stay curious about Griffith College.")
-        break
-
-    # Log when question received
+def local_llm_question(user_input, get_context_retrieval):
     question_time = time.time()
-    if LOG_LEVEL == "DEBUG":
-        logging.debug(f"Question received: {user_input}")
-        logging.debug(f"Question timestamp: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(question_time))}")
+    logger.info("Received a question.")
 
-    # Get context and usage
+    if config.LOG_LEVEL == "DEBUG":
+        logger.debug(f"Question: {user_input}")
+        logger.debug(f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(question_time))}")
+
+    # Get context
     context_chunks, tokens, read_units, rerank_units = get_context_retrieval(
         user_input, top_k=5
     )
@@ -72,11 +51,12 @@ while True:
         messages, tokenize=False, add_generation_prompt=True
     )
 
-    # Log before LLM generation start
+    # Log LLM start time
     llm_start_time = time.time()
-    if LOG_LEVEL == "DEBUG":
-        logging.debug(f"LLM generation start: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(llm_start_time))}")
+    if config.LOG_LEVEL == "DEBUG":
+        logger.debug(f"LLM generation started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(llm_start_time))}")
 
+    # Generate response
     outputs = pipe(
         prompt,
         max_new_tokens=512,
@@ -85,14 +65,27 @@ while True:
         top_k=50,
         top_p=0.95,
     )
-    # save endtime of LLm
-    llm_end_time = time.time()
-    
-    answer = outputs[0]["generated_text"][len(prompt) :].strip()
-    print("\n📚 GriffithBot:", answer)
 
-    # Log after LLM generation end
-    if LOG_LEVEL == "DEBUG":
-        logging.debug(f"LLM generation end: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(llm_end_time))}")
-        logging.debug(f"LLM generation duration: {llm_end_time - llm_start_time:.3f} seconds")
-        logging.debug(f"LLM answer:\n{answer}\n")
+    llm_end_time = time.time()
+    answer = outputs[0]["generated_text"][len(prompt):].strip()
+
+    if config.LOG_LEVEL == "DEBUG":
+        logger.debug(f"LLM generation ended at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(llm_end_time))}")
+        logger.debug(f"LLM generation duration: {llm_end_time - llm_start_time:.3f} seconds")
+        logger.debug(f"LLM answer:\n{answer}\n")
+
+    return answer 
+
+if __name__ == "__main__":
+
+    print("Griffith HistoryBot is ready. Ask about the campus' history! Type 'exit' to quit.")
+    
+    while True:
+        user_input = input("\n💬 You: ")
+        if user_input.lower() in {"exit", "quit"}:
+            print("👋 Goodbye! Stay curious about Griffith College.")
+            break
+        answer = local_llm_question(user_input, get_context_retrieval)
+        print("\n📚 GriffithBot:", answer)
+        print("Griffith HistoryBot is ready. Ask about the campus' history! Type 'exit' to quit.")
+

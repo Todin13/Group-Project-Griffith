@@ -1,13 +1,8 @@
 from pinecone import Pinecone
-from dotenv import load_dotenv
-import os
+import src.config as config  
 
-# Load API key from .env file
-load_dotenv()
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-
-# Initialize Pinecone client
-pc = Pinecone(api_key=PINECONE_API_KEY)
+# Initialize Pinecone client using API key from config
+pc = Pinecone(api_key=config.PINECONE_API_KEY)
 
 # List all indexes
 indexes = pc.list_indexes()

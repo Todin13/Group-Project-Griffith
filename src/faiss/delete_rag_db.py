@@ -1,10 +1,11 @@
 import os
+import src.config  as config
 
-# Path to the FAISS index file
-INDEX_FILE = "LOCAL_RAG/griffith_index.faiss"
+# Use the path from config
+index_file = config.INDEX_FILE
 
-if os.path.exists(INDEX_FILE):
-    os.remove(INDEX_FILE)
-    print(f"🗑️  Deleted FAISS index file: '{INDEX_FILE}'")
+if os.path.exists(index_file):
+    os.remove(index_file)
+    print(f"🗑️  Deleted FAISS index file: '{index_file}'")
 else:
-    print(f"❌ File '{INDEX_FILE}' does not exist.")
+    print(f"❌ File '{index_file}' does not exist.")
