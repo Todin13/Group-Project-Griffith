@@ -124,37 +124,40 @@ Install Python 3.13 and dependencies:
 
          make run
 
-## ✅ Summary
-
-| Component      | Description                                                 |
-| -------------- | ----------------------------------------------------------- |
-| **Data Tools** | Shell scripts for image/text extraction, cleaning, chunking |
-| **Vector DB**  | Pinecone for storing and retrieving semantic chunks         |
-| **LLMs**       | TinyLlama (lightweight), LLaMA 3.1-8B (advanced)            |
-| **License**    | Required for LLaMA 3.1-8B usage via Hugging Face            |
-| **Setup**      | Python 3.13 via pyenv, Poetry for dependency management     |
-
 ## 📁 Project Structure
 
 The project is organized as follows:
 
         root/
         ├── src/
-        │   ├── app/                    # Frontend logic, app design, and integration principles
-        │   ├── core/                   # Core backend logic: RAG orchestration and model interaction
-        │   ├── faiss/                  # FAISS-based local vector database alternative
-        │   ├── pdf_manipulation/       # Scripts to clean, split, and chunk PDF data
-        │   ├── pinecone/               # Pinecone vector DB configuration and indexing logic
-        │   ├── config.py               # Configuration management (login key, data-folder, ...)
-        │   └── main.py                 # Entry point: application bootstrap and launch logic
+        │   ├── app/                                # Frontend logic, app design, and integration principles
+        │   ├── core/                               # Core backend logic: RAG orchestration and model interaction
+        │   ├── faiss/                              # FAISS-based local vector database alternative
+        │   ├── pdf_manipulation/                   # Scripts to clean, split, and chunk PDF data
+        │   ├── pinecone/                           # Pinecone vector DB configuration and indexing logic
+        │   ├── config.py                            # Configuration management (login key, data-folder, ...)
+        │   └── main.py                             # Entry point: application bootstrap and launch logic
         │
-        ├── .env.example                # Example environment configuration file
-        ├── .gitignore                  # Git configuration to ignore local/dev files
-        ├── Griffith College 200 Years.pdf # Source document used in the RAG pipeline
-        ├── LICENSE                     # Open-source project license
-        ├── LLAMA 3.2 COMMUNITY LICENSE AGREEMENT  # Required license agreement for using LLaMA 3.2 models
-        ├── Makefile                    # Automation commands for setup, data processing, and deployment
-        ├── pyproject.toml              # Poetry project configuration and dependencies
-        ├── README.md                   # Project documentation
+        ├── .env.example                            # Example environment configuration file
+        ├── .gitignore                              # Git configuration to ignore local/dev files
+        ├── Griffith College 200 Years.pdf            # Source document used in the RAG pipeline
+        ├── LICENSE                                 # Open-source project license
+        ├── LLAMA 3.2 COMMUNITY LICENSE AGREEMENT   # Required license agreement for using LLaMA 3.2 models
+        ├── Makefile                                 # Automation commands for setup, data processing, and deployment
+        ├── pyproject.toml                          # Poetry project configuration and dependencies
+        ├── README.md                               # Project documentation
 
 Each directory and file is purposefully designed to keep the app modular, easy to maintain, and scalable for LLM-powered applications using Retrieval-Augmented Generation (RAG).
+
+## ✅ Summary
+
+| Component             | Description                                                                                                                                                       |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Data Tools**        | Shell scripts leveraging `pdfimages` and `pdftotext` to extract images and text, then cleaning, splitting, and chunking PDFs for RAG                              |
+| **Vector DBs**        | Pinecone cloud for vector indexing and retrieval, with an optional local FAISS alternative                                                                        |
+| **Local Models**      | TinyLlama-1.1B (lightweight, low-resource), LLaMA 3.1-8B and LLaMA 3.2-3B (more powerful, larger context)                                                         |
+| **Cloud Models**      | Mistral-Small-3.1-24B-Instruct accessed via Hugging Face Inference API (requires internet connection)                                                             |
+| **Licensing**         | Must accept LLAMA 3.1 and 3.2 Community License Agreements before using corresponding models                                                                      |
+| **Setup**             | Uses Python 3.13 managed by pyenv, with dependencies handled by Poetry                                                                                            |
+| **Automation**        | Makefile targets for preparing data (`make data-transfo`), populating vector DBs (`make pinecone-populate` and `make faiss-populate`), login, and running the app |
+| **Project Structure** | Modular organization under `src/` with dedicated folders for app, core logic, vector DB interfaces, PDF processing, and configuration                             |

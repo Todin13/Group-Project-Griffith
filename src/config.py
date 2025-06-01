@@ -26,11 +26,12 @@ PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "griffith-college-chunks")
 PINECONE_NAMESPACE = os.getenv("PINECONE_NAMESPACE", "200-history")
 
-# === HuggingFace === 
-HF_API_KEY = os.getenv("INFERENCE_API_KEY", "") 
+# === HuggingFace ===
+HF_API_KEY = os.getenv("INFERENCE_API_KEY", "")
 
 # === Models ===
 LOCAL_MODEL = os.getenv("LOCAL_MODEL", "meta-llama/Llama-3.2-3B-Instruct")
+
 
 def setup_logging():
     if LOG_LEVEL == "DEBUG":

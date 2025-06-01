@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 pc = Pinecone(api_key=config.PINECONE_API_KEY)
 dense_index = pc.Index(config.PINECONE_INDEX_NAME)
 
+
 def get_context_retrieval(query, top_k=10):
     start_time = time.time()
 
@@ -35,8 +36,12 @@ def get_context_retrieval(query, top_k=10):
     rerank_units = reranked_results.get("usage", {}).get("rerank_units", "N/A")
 
     if config.LOG_LEVEL == "DEBUG":
-        logger.debug(f"Pinecone search started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}")
-        logger.debug(f"Pinecone search ended at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))}")
+        logger.debug(
+            f"Pinecone search started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}"
+        )
+        logger.debug(
+            f"Pinecone search ended at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))}"
+        )
         logger.debug(f"Pinecone search duration: {elapsed:.3f} seconds")
         logger.debug(f"Pinecone retrieved {len(hits)} hits")
         for i, hit in enumerate(hits, 1):

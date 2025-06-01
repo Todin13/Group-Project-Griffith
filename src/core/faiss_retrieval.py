@@ -27,10 +27,13 @@ with open(config.TEXT_STORE_FILE, "r", encoding="utf-8") as f:
 print("Loading embedding model...")
 model = SentenceTransformer(config.EMBEDDING_MODEL_NAME)
 
+
 def get_context_retrieval(query, top_k=10):
     start_time = time.time()
     if config.LOG_LEVEL == "DEBUG":
-        logger.debug(f"FAISS search start: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}")
+        logger.debug(
+            f"FAISS search start: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}"
+        )
 
     # Embed query
     query_vec = model.encode([query])
@@ -52,23 +55,31 @@ def get_context_retrieval(query, top_k=10):
         record_id = id_map.get(str_id, "UNKNOWN_ID")
         chunk_text = text_store.get(str_id, {}).get("chunk_text", "<no text>")
 
-        results.append({
-            "id": record_id,
-            "distance": float(dist),
-            "chunk_text": chunk_text,
-        })
+        results.append(
+            {
+                "id": record_id,
+                "distance": float(dist),
+                "chunk_text": chunk_text,
+            }
+        )
 
         context_chunks.append(chunk_text)
 
         if config.LOG_LEVEL == "DEBUG":
-            logger.debug(f"Hit #{i} (distance: {dist:.4f}): ID {record_id} - Text: {chunk_text}")
+            logger.debug(
+                f"Hit #{i} (distance: {dist:.4f}): ID {record_id} - Text: {chunk_text}"
+            )
 
     if config.LOG_LEVEL == "DEBUG":
-        logger.debug(f"FAISS search end: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))}")
+        logger.debug(
+            f"FAISS search end: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))}"
+        )
         logger.debug(f"FAISS search duration: {elapsed:.3f} seconds")
         logger.debug(f"FAISS retrieved hits count: {len(results)}")
 
-    print(f"FAISS search took {elapsed:.3f} seconds, found {len(context_chunks)} results")
+    print(
+        f"FAISS search took {elapsed:.3f} seconds, found {len(context_chunks)} results"
+    )
 
     token_count = "N/A"
     read_units = "N/A"

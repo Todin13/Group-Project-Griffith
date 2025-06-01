@@ -22,13 +22,16 @@ system_message = {
     "content": "You are a helpful assistant that specializes in the history of the Griffith College campus, including its buildings, people, and events. Answer questions using the retrieved historical context.",
 }
 
+
 def local_llm_question(user_input, get_context_retrieval):
     question_time = time.time()
     logger.info("Received a question.")
 
     if config.LOG_LEVEL == "DEBUG":
         logger.debug(f"Question: {user_input}")
-        logger.debug(f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(question_time))}")
+        logger.debug(
+            f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(question_time))}"
+        )
 
     # Get context
     context_chunks, tokens, read_units, rerank_units = get_context_retrieval(
@@ -54,7 +57,9 @@ def local_llm_question(user_input, get_context_retrieval):
     # Log LLM start time
     llm_start_time = time.time()
     if config.LOG_LEVEL == "DEBUG":
-        logger.debug(f"LLM generation started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(llm_start_time))}")
+        logger.debug(
+            f"LLM generation started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(llm_start_time))}"
+        )
 
     # Generate response
     outputs = pipe(
@@ -67,19 +72,26 @@ def local_llm_question(user_input, get_context_retrieval):
     )
 
     llm_end_time = time.time()
-    answer = outputs[0]["generated_text"][len(prompt):].strip()
+    answer = outputs[0]["generated_text"][len(prompt) :].strip()
 
     if config.LOG_LEVEL == "DEBUG":
-        logger.debug(f"LLM generation ended at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(llm_end_time))}")
-        logger.debug(f"LLM generation duration: {llm_end_time - llm_start_time:.3f} seconds")
+        logger.debug(
+            f"LLM generation ended at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(llm_end_time))}"
+        )
+        logger.debug(
+            f"LLM generation duration: {llm_end_time - llm_start_time:.3f} seconds"
+        )
         logger.debug(f"LLM answer:\n{answer}\n")
 
-    return answer 
+    return answer
+
 
 if __name__ == "__main__":
 
-    print("Griffith HistoryBot is ready. Ask about the campus' history! Type 'exit' to quit.")
-    
+    print(
+        "Griffith HistoryBot is ready. Ask about the campus' history! Type 'exit' to quit."
+    )
+
     while True:
         user_input = input("\n💬 You: ")
         if user_input.lower() in {"exit", "quit"}:
@@ -87,5 +99,6 @@ if __name__ == "__main__":
             break
         answer = local_llm_question(user_input, get_context_retrieval)
         print("\n📚 GriffithBot:", answer)
-        print("Griffith HistoryBot is ready. Ask about the campus' history! Type 'exit' to quit.")
-
+        print(
+            "Griffith HistoryBot is ready. Ask about the campus' history! Type 'exit' to quit."
+        )

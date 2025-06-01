@@ -1,5 +1,5 @@
 from pinecone import Pinecone
-import src.config as config  
+import src.config as config
 
 # Initialize Pinecone client using API key from config
 pc = Pinecone(api_key=config.PINECONE_API_KEY)

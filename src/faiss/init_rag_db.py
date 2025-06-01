@@ -33,7 +33,7 @@ text_store = {
     str(i): {
         "_id": original_ids[i],
         "chunk_text": texts[i],
-        "category": records[i].get("category", "")
+        "category": records[i].get("category", ""),
     }
     for i in range(len(original_ids))
 }

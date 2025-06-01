@@ -19,7 +19,8 @@ system_message = {
     "content": "You are a helpful assistant that specializes in the history of the Griffith College campus, including its buildings, people, and events. Answer questions using the retrieved historical context.",
 }
 
-def api_llm_question(user_input:str,get_context_retrieval): 
+
+def api_llm_question(user_input: str, get_context_retrieval):
     question_time = time.time()
     logger.info("Received a question.")
 
@@ -55,22 +56,26 @@ def api_llm_question(user_input:str,get_context_retrieval):
 
     # Logging
     if config.LOG_LEVEL == "DEBUG":
-        logger.debug(f"LLM generation duration: {llm_end_time - llm_start_time:.3f} seconds")
+        logger.debug(
+            f"LLM generation duration: {llm_end_time - llm_start_time:.3f} seconds"
+        )
         logger.debug(f"LLM answer:\n{answer}\n")
-    
+
     return answer
 
 
 if __name__ == "__main__":
     while True:
 
-        print("Griffith HistoryBot is ready. Ask about the campus' history! Type 'exit' to quit.")
-        
+        print(
+            "Griffith HistoryBot is ready. Ask about the campus' history! Type 'exit' to quit."
+        )
+
         user_input = input("\n💬 You: ")
         if user_input.lower() in {"exit", "quit"}:
             print("👋 Goodbye! Stay curious about Griffith College.")
             break
-        
+
         answer = api_llm_question(user_input, get_context_retrieval)
 
         print("\n📚 GriffithBot:", answer)

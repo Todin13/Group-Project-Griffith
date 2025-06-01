@@ -1,5 +1,5 @@
 import os
-import src.config  as config
+import src.config as config
 
 # Use the path from config
 index_file = config.INDEX_FILE
