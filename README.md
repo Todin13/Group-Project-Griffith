@@ -17,25 +17,38 @@ To extract and prepare the content from PDF files, the project uses several shel
 
 ## 🧠 Model Choices
 
-### 🔹 [TinyLlama-1.1B-Chat-v1.0](https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0) — _~2.5 GB_
+### Local Model
 
+#### 🔹 [TinyLlama-1.1B-Chat-v1.0](https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0) — _~2.5 GB_
+
+- Tried
 - ✅ Lightweight and deployable on low-resource machines
 - ⚠️ Prone to hallucinations, especially with larger context input
 - Take around 30 second to answer with a NVIDIA GeForece RTX 2060 Mobile and an Intel i5-10300H
 
-### 🔸 [LLaMA 3.1-8B-Instruct](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct) — _~15 GB_
+#### 🔸 [LLaMA 3.1-8B-Instruct](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct) — _~15 GB_
 
+- Tried
 - ✅ Much more capable with faster responses, higher token capacity, and better context handling
 - ⚠️ Requires significantly more hardware resources
 - Take around 3 minutes to answer with a NVIDIA GeForece RTX 2060 Mobile and an Intel i5-10300H
 - 📜 **Note**: You must accept the [**LLAMA 3.1 COMMUNITY LICENSE AGREEMENT**](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/blob/main/LICENSE) before use
 
-### 🔸 [LLaMA 3.2-3B-Instruct](https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct) — _~6.5 GB_
+#### [LLaMA 3.2-3B-Instruct](https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct) — _~6.5 GB_
 
+- Actual one
 - ✅ Smaller than 8B version but still powerful with instruction-following capabilities
 - ⚠️ Requires moderate hardware resources compared to larger LLaMA models
-- Take around 1 minutes to answer with a NVIDIA GeForece RTX 2060 Mobile and an Intel i5-10300H
+- Take around 1 minutes and 30 seconds to answer with a NVIDIA GeForece RTX 2060 Mobile and an Intel i5-10300H
 - 📜 **Note**: You must accept the [**LLAMA 3.2 COMMUNITY LICENSE AGREEMENT**](.https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct/blob/main/LICENSE.txt) before use
+
+### Hugging Face Inference API Model
+
+### 🔸 [Mistral-Small-3.1-24B-Instruct](https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503) — _In Hugging Face Cloud_
+
+- ✅ 24B parameters — strong instruction-following and reasoning capabilities
+- 🌐 **Cloud-hosted** model: requires an active internet connection
+- ⚠️ Cannot run locally due to model size and hosting constraints
 
 ## 🚀 Initialize the App
 
@@ -65,12 +78,19 @@ Install Python 3.13 and dependencies:
 
 3.  Prepare and upload the data:
 
-         make data-transfo # Clean, split, and chunk the data
-         make populate # Upload to Pinecone
+         make data-transfo      # Clean, split, and chunk the data
+         make pinecone-populate # Upload to Pinecone
+
+### Faiss Setup
+
+1.  Prepare and upload the data:
+
+         make data-transfo      # Clean, split, and chunk the data
+         make faiss-populate    # Create the Faiss database
 
 ## 🔍 Get the Model
 
-### 🧠 Accessing LLaMA 3.1-8B
+### 🧠 Accessing LLaMA 3.2-3B
 
 1.  Create or log in to a [Hugging Face account](https://huggingface.co/login)
 2.  Visit the [Llama 3.2-3B-Instruct model page](https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct)
@@ -81,7 +101,24 @@ Install Python 3.13 and dependencies:
 
 5.  (Optional) To enable debug logging, add this to your `.env` file:
 
-         LOG_LEVEL="D│ ├── faiss/ # FAISS-based local vector database alternativeEBUG"
+         LOG_LEVEL="DEBUG"
+
+6.  Run the application:
+
+         make run
+
+### 🧠 Accessing Mistral Small 3.1-24B
+
+1.  Create or log in to a [Hugging Face account](https://huggingface.co/login)
+2.  Visit the [Mistral Small 3.1-24B Instruct model page](https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503) and accept toshare your contact informations
+3.  Create an Inference token [here](https://huggingface.co/settings/tokens/new?tokenType=fineGrained)
+4.  Copy the key to the `.env` file:
+
+         INFERENCE_API_KEY="your token"
+
+5.  (Optional) To enable debug logging, add this to your `.env` file:
+
+         LOG_LEVEL="DEBUG"
 
 6.  Run the application:
 
@@ -108,6 +145,7 @@ The project is organized as follows:
         │   ├── faiss/                  # FAISS-based local vector database alternative
         │   ├── pdf_manipulation/       # Scripts to clean, split, and chunk PDF data
         │   ├── pinecone/               # Pinecone vector DB configuration and indexing logic
+        │   ├── config.py               # Configuration management (login key, data-folder, ...)
         │   └── main.py                 # Entry point: application bootstrap and launch logic
         │
         ├── .env.example                # Example environment configuration file
