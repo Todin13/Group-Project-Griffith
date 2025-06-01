@@ -102,12 +102,12 @@ Install Python 3.13 and dependencies:
 The project is organized as follows:
 
         root/
-        ├── code/
+        ├── src/
         │   ├── app/                    # Frontend logic, app design, and integration principles
         │   ├── core/                   # Core backend logic: RAG orchestration and model interaction
+        │   ├── faiss/                  # FAISS-based local vector database alternative
         │   ├── pdf_manipulation/       # Scripts to clean, split, and chunk PDF data
         │   ├── pinecone/               # Pinecone vector DB configuration and indexing logic
-        │   ├── faiss/                  # FAISS-based local vector database alternative
         │   └── main.py                 # Entry point: application bootstrap and launch logic
         │
         ├── .env.example                # Example environment configuration file
