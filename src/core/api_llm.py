@@ -3,6 +3,7 @@ import logging
 import time
 import src.config as config
 from src.core.pinecone_retrival import get_context_retrieval
+from src.core.question_analysis import is_about_chatbot
 
 # Setup logging
 config.setup_logging()
@@ -16,7 +17,11 @@ client = InferenceClient(
 
 system_message = {
     "role": "system",
-    "content": "You are a helpful assistant that specializes in the history of the Griffith College campus, including its buildings, people, and events. Answer questions using the retrieved historical context.",
+    "content": (
+        "You are GriffithBot, a helpful assistant that only answers questions related to the history of Griffith College, "
+        "its campus, buildings, people, and events. If a user asks a question unrelated to Griffith College, politely "
+        "refuse to answer and remind them of your specialty."
+    ),
 }
 
 
@@ -27,11 +32,19 @@ def api_llm_question(user_input: str, get_context_retrieval):
     if config.LOG_LEVEL == "DEBUG":
         logger.debug(f"Question: {user_input}")
 
-    # Get context
-    context_chunks, tokens, read_units, rerank_units = get_context_retrieval(
-        user_input, top_k=5
-    )
-    context = "\n\n".join(context_chunks)
+    if is_about_chatbot(user_input):
+        # Detect if user is asking about the chatbot
+        context = ("You are GriffithBot, a helpful assistant that only answers questions related to the history of Griffith College, "
+        "its campus, buildings, people, and events. If a user asks a question unrelated to Griffith College, politely "
+        "refuse to answer and remind them of your specialty.")
+    else:
+        # Use RAG for Griffith College-related questions
+        # Get context
+        context_chunks, tokens, read_units, rerank_units = get_context_retrieval(
+            user_input, top_k=5
+        )
+        context = "\n\n".join(context_chunks)
+        
 
     messages = [
         system_message,

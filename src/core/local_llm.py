@@ -4,6 +4,7 @@ import time
 import logging
 import src.config as config
 from src.core.pinecone_retrival import get_context_retrieval
+from src.core.question_analysis import is_about_chatbot
 
 # Setup logging
 config.setup_logging()
@@ -33,11 +34,19 @@ def local_llm_question(user_input, get_context_retrieval):
             f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(question_time))}"
         )
 
-    # Get context
-    context_chunks, tokens, read_units, rerank_units = get_context_retrieval(
-        user_input, top_k=5
-    )
-    context = "\n\n".join(context_chunks)
+    if is_about_chatbot(user_input):
+        # Detect if user is asking about the chatbot
+        context = ("You are GriffithBot, a helpful assistant that only answers questions related to the history of Griffith College, "
+        "its campus, buildings, people, and events. If a user asks a question unrelated to Griffith College, politely "
+        "refuse to answer and remind them of your specialty.")
+    else:
+        # Use RAG for Griffith College-related questions
+        # Get context
+        context_chunks, tokens, read_units, rerank_units = get_context_retrieval(
+            user_input, top_k=5
+        )
+        context = "\n\n".join(context_chunks)
+        
 
     messages = [
         system_message,
