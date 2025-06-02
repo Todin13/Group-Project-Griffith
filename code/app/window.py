@@ -104,11 +104,14 @@ class ChatApp(QWidget):
         if self.chat_area is None:
             self.setup_chat_ui()
 
-        self.chat_area.addWidget(create_chat_bubble(user_input, is_user=True))
+        user_bubble, _ = create_chat_bubble(user_input, is_user=True)
+        self.chat_area.addWidget(user_bubble)
+
         self.input_field.clear()
 
-        self.typing_label = create_chat_bubble("GriffAI is typing...", is_user=False, bot_name="GriffithAI")
+        self.typing_label, _ = create_chat_bubble("GriffAI is typing...", is_user=False, bot_name="GriffithAI")
         self.chat_area.addWidget(self.typing_label)
+
         self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
 
         # Fetch model response and display it
@@ -121,9 +124,10 @@ class ChatApp(QWidget):
 
         self.bot_response = response
         self.char_index = 0
-        self.animated_bubble = create_chat_bubble("", is_user=False, bot_name="GriffithAI")
-        self.label = self.animated_bubble.findChild(QLabel, "chat_text")
+        
+        self.animated_bubble, self.label = create_chat_bubble("", is_user=False, bot_name="GriffithAI")
         self.chat_area.addWidget(self.animated_bubble)
+
         self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
 
         self.typing_timer = QTimer()

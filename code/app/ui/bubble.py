@@ -8,11 +8,9 @@ def create_chat_bubble(text, is_user=True, bot_name="GriffithAI"):
     bubble.setWordWrap(True)
     bubble.setFont(QFont("Arial", 11))
     bubble.setTextInteractionFlags(Qt.TextSelectableByMouse)
-
-    # Allow resizing so it wraps correctly
     bubble.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-    bubble.setMinimumWidth(200)  # allow wider bubbles
-    bubble.setMaximumWidth(500)  # prevent full screen bubbles
+    bubble.setMinimumWidth(200)
+    bubble.setMaximumWidth(500)
 
     bubble.setStyleSheet(f"""
         QLabel {{
@@ -36,4 +34,6 @@ def create_chat_bubble(text, is_user=True, bot_name="GriffithAI"):
 
     container = QWidget()
     container.setLayout(layout)
-    return container
+
+    return container, bubble
+
