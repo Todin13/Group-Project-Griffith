@@ -5,8 +5,11 @@ from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QRect
 from app.ui.chatbar import create_chat_bar
 from app.ui.topbar import create_top_bar
 from app.ui.bubble import create_chat_bubble
-from core.use_model import ask_model
 from app.ui.terms_dialog import TermsDialog
+from core.local_llm import local_llm_question
+from core.api_llm import api_llm_question
+from core.pinecone_retrival import get_context_retrieval  # or faiss_retrieval
+
 
 class ChatApp(QWidget):
     def __init__(self):
@@ -14,6 +17,7 @@ class ChatApp(QWidget):
         self.setWindowTitle("Griffith College History Assistant")
         self.setMinimumSize(500, 600)
 
+        self.llm_backend = "local"
         self.init_ui()
         self.check_license_agreement()
 
@@ -55,7 +59,6 @@ class ChatApp(QWidget):
 
     def check_license_agreement(self):
         if not os.path.exists(".accepted_terms"):
-            from app.ui.terms_dialog import TermsDialog
 
             try:
                 with open("LICENSE", "r") as f1, open("LLAMA 3.2 COMMUNITY LICENSE AGREEMENT", "r") as f2:
@@ -147,12 +150,17 @@ class ChatApp(QWidget):
 
 
     def fetch_and_display_response(self, user_input):
-        response = ask_model(user_input).strip()
+        # Choose which model to call (you can make this dynamic later)
+        # Swap between `local_llm_question` or `api_llm_question` as needed
+        if self.llm_backend == "api":
+            response = api_llm_question(user_input, get_context_retrieval).strip()
+        else:
+            response = local_llm_question(user_input, get_context_retrieval).strip()
+
         self.typing_label.deleteLater()
 
         self.bot_response = response
         self.char_index = 0
-        
         self.animated_bubble, self.label = create_chat_bubble("", is_user=False, bot_name="GriffithAI")
         self.chat_area.addWidget(self.animated_bubble)
 
@@ -161,6 +169,7 @@ class ChatApp(QWidget):
         self.typing_timer = QTimer()
         self.typing_timer.timeout.connect(self.animate_typing)
         self.typing_timer.start(15)
+
 
 
     def animate_typing(self):
