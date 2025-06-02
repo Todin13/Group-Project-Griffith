@@ -6,23 +6,29 @@ prepare:
 
 run:
 	@echo "Starting the app"
-	poetry run python code/main.py
+	poetry run python -m src.main
 
-populate:
-	poetry run python code/pinecone/init_rag_db.py
+pinecone-populate:
+	poetry run python -m src.pinecone.init_rag_db
 
-purge:
-	poetry run python code/pinecone/delete_rag_db.py
+pinecone-purge:
+	poetry run python -m src.pinecone.delete_rag_db
+
+faiss-populate:
+	poetry run python -m src.faiss.init_rag_db
+
+faiss-purge:
+	poetry run python -m src.faiss.delete_rag_db
 
 data-transfo:
 	pdftotext Griffith\ College\ 200\ Years.pdf
-	./code/pdf_manipulation/pdf_to_chunk.sh
+	./src/pdf_manipulation/pdf_to_chunk.sh
 
 check:
 	@echo "Running Black"
 	poetry run black --check .
 	@echo "Running Vulture"
-	poetry run vulture main.py
+	poetry run vulture src/main.py
 	@echo ""
 	@echo "All goods !!!"
 

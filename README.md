@@ -17,25 +17,38 @@ To extract and prepare the content from PDF files, the project uses several shel
 
 ## 🧠 Model Choices
 
-### 🔹 [TinyLlama-1.1B-Chat-v1.0](https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0) — _~2.5 GB_
+### Local Model
 
+#### 🔹 [TinyLlama-1.1B-Chat-v1.0](https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0) — _~2.5 GB_
+
+- Tried
 - ✅ Lightweight and deployable on low-resource machines
 - ⚠️ Prone to hallucinations, especially with larger context input
 - Take around 30 second to answer with a NVIDIA GeForece RTX 2060 Mobile and an Intel i5-10300H
 
-### 🔸 [LLaMA 3.1-8B-Instruct](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct) — _~15 GB_
+#### 🔸 [LLaMA 3.1-8B-Instruct](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct) — _~15 GB_
 
+- Tried
 - ✅ Much more capable with faster responses, higher token capacity, and better context handling
 - ⚠️ Requires significantly more hardware resources
 - Take around 3 minutes to answer with a NVIDIA GeForece RTX 2060 Mobile and an Intel i5-10300H
 - 📜 **Note**: You must accept the [**LLAMA 3.1 COMMUNITY LICENSE AGREEMENT**](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/blob/main/LICENSE) before use
 
-### 🔸 [LLaMA 3.2-3B-Instruct](https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct) — _~6.5 GB_
+#### [LLaMA 3.2-3B-Instruct](https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct) — _~6.5 GB_
 
+- Actual one
 - ✅ Smaller than 8B version but still powerful with instruction-following capabilities
 - ⚠️ Requires moderate hardware resources compared to larger LLaMA models
-- Take around 1 minutes to answer with a NVIDIA GeForece RTX 2060 Mobile and an Intel i5-10300H
+- Take around 1 minutes and 30 seconds to answer with a NVIDIA GeForece RTX 2060 Mobile and an Intel i5-10300H
 - 📜 **Note**: You must accept the [**LLAMA 3.2 COMMUNITY LICENSE AGREEMENT**](.https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct/blob/main/LICENSE.txt) before use
+
+### Hugging Face Inference API Model
+
+### 🔸 [Mistral-Small-3.1-24B-Instruct](https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503) — _In Hugging Face Cloud_
+
+- ✅ 24B parameters — strong instruction-following and reasoning capabilities
+- 🌐 **Cloud-hosted** model: requires an active internet connection and only a small part of the request are free
+- ⚠️ Cannot run locally due to model size and hosting constraints
 
 ## 🚀 Initialize the App
 
@@ -65,12 +78,19 @@ Install Python 3.13 and dependencies:
 
 3.  Prepare and upload the data:
 
-         make data-transfo # Clean, split, and chunk the data
-         make populate # Upload to Pinecone
+         make data-transfo      # Clean, split, and chunk the data
+         make pinecone-populate # Upload to Pinecone
+
+### Faiss Setup
+
+1.  Prepare and upload the data:
+
+         make data-transfo      # Clean, split, and chunk the data
+         make faiss-populate    # Create the Faiss database
 
 ## 🔍 Get the Model
 
-### 🧠 Accessing LLaMA 3.1-8B
+### 🧠 Accessing LLaMA 3.2-3B
 
 1.  Create or log in to a [Hugging Face account](https://huggingface.co/login)
 2.  Visit the [Llama 3.2-3B-Instruct model page](https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct)
@@ -81,42 +101,63 @@ Install Python 3.13 and dependencies:
 
 5.  (Optional) To enable debug logging, add this to your `.env` file:
 
-         LOG_LEVEL="D│ ├── faiss/ # FAISS-based local vector database alternativeEBUG"
+         LOG_LEVEL="DEBUG"
 
 6.  Run the application:
 
          make run
 
-## ✅ Summary
+### 🧠 Accessing Mistral Small 3.1-24B
 
-| Component      | Description                                                 |
-| -------------- | ----------------------------------------------------------- |
-| **Data Tools** | Shell scripts for image/text extraction, cleaning, chunking |
-| **Vector DB**  | Pinecone for storing and retrieving semantic chunks         |
-| **LLMs**       | TinyLlama (lightweight), LLaMA 3.1-8B (advanced)            |
-| **License**    | Required for LLaMA 3.1-8B usage via Hugging Face            |
-| **Setup**      | Python 3.13 via pyenv, Poetry for dependency management     |
+1.  Create or log in to a [Hugging Face account](https://huggingface.co/login)
+2.  Visit the [Mistral Small 3.1-24B Instruct model page](https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503) and accept toshare your contact informations
+3.  Create an Inference token [here](https://huggingface.co/settings/tokens/new?tokenType=fineGrained)
+4.  Copy the key to the `.env` file:
+
+         INFERENCE_API_KEY="your token"
+
+5.  (Optional) To enable debug logging, add this to your `.env` file:
+
+         LOG_LEVEL="DEBUG"
+
+6.  Run the application:
+
+         make run
 
 ## 📁 Project Structure
 
 The project is organized as follows:
 
         root/
-        ├── code/
-        │   ├── app/                    # Frontend logic, app design, and integration principles
-        │   ├── core/                   # Core backend logic: RAG orchestration and model interaction
-        │   ├── pdf_manipulation/       # Scripts to clean, split, and chunk PDF data
-        │   ├── pinecone/               # Pinecone vector DB configuration and indexing logic
-        │   ├── faiss/                  # FAISS-based local vector database alternative
-        │   └── main.py                 # Entry point: application bootstrap and launch logic
+        ├── src/
+        │   ├── app/                                # Frontend logic, app design, and integration principles
+        │   ├── core/                               # Core backend logic: RAG orchestration and model interaction
+        │   ├── faiss/                              # FAISS-based local vector database alternative
+        │   ├── pdf_manipulation/                   # Scripts to clean, split, and chunk PDF data
+        │   ├── pinecone/                           # Pinecone vector DB configuration and indexing logic
+        │   ├── config.py                            # Configuration management (login key, data-folder, ...)
+        │   └── main.py                             # Entry point: application bootstrap and launch logic
         │
-        ├── .env.example                # Example environment configuration file
-        ├── .gitignore                  # Git configuration to ignore local/dev files
-        ├── Griffith College 200 Years.pdf # Source document used in the RAG pipeline
-        ├── LICENSE                     # Open-source project license
-        ├── LLAMA 3.2 COMMUNITY LICENSE AGREEMENT  # Required license agreement for using LLaMA 3.2 models
-        ├── Makefile                    # Automation commands for setup, data processing, and deployment
-        ├── pyproject.toml              # Poetry project configuration and dependencies
-        ├── README.md                   # Project documentation
+        ├── .env.example                            # Example environment configuration file
+        ├── .gitignore                              # Git configuration to ignore local/dev files
+        ├── Griffith College 200 Years.pdf            # Source document used in the RAG pipeline
+        ├── LICENSE                                 # Open-source project license
+        ├── LLAMA 3.2 COMMUNITY LICENSE AGREEMENT   # Required license agreement for using LLaMA 3.2 models
+        ├── Makefile                                 # Automation commands for setup, data processing, and deployment
+        ├── pyproject.toml                          # Poetry project configuration and dependencies
+        ├── README.md                               # Project documentation
 
 Each directory and file is purposefully designed to keep the app modular, easy to maintain, and scalable for LLM-powered applications using Retrieval-Augmented Generation (RAG).
+
+## ✅ Summary
+
+| Component             | Description                                                                                                                                                       |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Data Tools**        | Shell scripts leveraging `pdfimages` and `pdftotext` to extract images and text, then cleaning, splitting, and chunking PDFs for RAG                              |
+| **Vector DBs**        | Pinecone cloud for vector indexing and retrieval, with an optional local FAISS alternative                                                                        |
+| **Local Models**      | TinyLlama-1.1B (lightweight, low-resource), LLaMA 3.1-8B and LLaMA 3.2-3B (more powerful, larger context)                                                         |
+| **Cloud Models**      | Mistral-Small-3.1-24B-Instruct accessed via Hugging Face Inference API (requires internet connection)                                                             |
+| **Licensing**         | Must accept LLAMA 3.1 and 3.2 Community License Agreements before using corresponding models                                                                      |
+| **Setup**             | Uses Python 3.13 managed by pyenv, with dependencies handled by Poetry                                                                                            |
+| **Automation**        | Makefile targets for preparing data (`make data-transfo`), populating vector DBs (`make pinecone-populate` and `make faiss-populate`), login, and running the app |
+| **Project Structure** | Modular organization under `src/` with dedicated folders for app, core logic, vector DB interfaces, PDF processing, and configuration                             |
