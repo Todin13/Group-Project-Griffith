@@ -2,13 +2,30 @@ import os
 import sys
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QLabel
 from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QRect
-from app.ui.chatbar import create_chat_bar
-from app.ui.topbar import create_top_bar
-from app.ui.bubble import create_chat_bubble
-from app.ui.terms_dialog import TermsDialog
-from core.local_llm import local_llm_question
-from core.api_llm import api_llm_question
-from core.pinecone_retrival import get_context_retrieval  # or faiss_retrieval
+from src.app.ui.chatbar import create_chat_bar
+from src.app.ui.topbar import create_top_bar
+from src.app.ui.bubble import create_chat_bubble
+from src.app.ui.terms_dialog import TermsDialog
+from src.core.local_llm import local_llm_question
+from src.core.api_llm import api_llm_question
+from src.core.pinecone_retrival import get_context_retrieval  # or faiss_retrieval
+
+
+def choose_model(user_input):
+    model_type = "local"
+    api_key = None
+    if os.path.exists(".model_config"):
+        with open(".model_config", "r") as f:
+            for line in f:
+                if line.startswith("MODEL_TYPE="):
+                    model_type = line.split("=")[1].strip()
+                elif line.startswith("INFERENCE_API_KEY="):
+                    api_key = line.split("=")[1].strip()
+
+    if model_type == "api":
+        return api_llm_question(user_input, get_context_retrieval, api_key)
+    else:
+        return local_llm_question(user_input, get_context_retrieval)
 
 
 class ChatApp(QWidget):
@@ -152,10 +169,8 @@ class ChatApp(QWidget):
     def fetch_and_display_response(self, user_input):
         # Choose which model to call (you can make this dynamic later)
         # Swap between `local_llm_question` or `api_llm_question` as needed
-        if self.llm_backend == "api":
-            response = api_llm_question(user_input, get_context_retrieval).strip()
-        else:
-            response = local_llm_question(user_input, get_context_retrieval).strip()
+        response = choose_model(user_input).strip()
+
 
         self.typing_label.deleteLater()
 
