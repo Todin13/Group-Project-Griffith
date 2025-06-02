@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QPushButton, QTextEdit,
-    QCheckBox, QStackedWidget, QScrollBar
+    QCheckBox, QStackedWidget, QMessageBox
 )
 from PyQt5.QtCore import Qt
 
@@ -33,41 +33,79 @@ class TermsDialog(QDialog):
 
         self.show_page1()
 
-    def create_license_page(self, license_text, checkbox_text):
+    def create_license_page(self, license_text, accept_text):
         layout = QVBoxLayout()
 
         license_box = QTextEdit()
         license_box.setReadOnly(True)
         license_box.setPlainText(license_text)
 
-        checkbox = QCheckBox(checkbox_text)
-        checkbox.setVisible(False)  # Hidden until scroll reaches bottom
+        accept_checkbox = QCheckBox(accept_text)
+        accept_checkbox.setVisible(False)
 
-        button = QPushButton("Continue" if "general" in checkbox_text else "Finish")
+        decline_checkbox = QCheckBox("I do not accept")
+        decline_checkbox.setVisible(False)
+
+        button = QPushButton("Continue" if "general" in accept_text else "Finish")
         button.setEnabled(False)
 
-        checkbox.stateChanged.connect(lambda state: button.setEnabled(state == Qt.Checked))
-
+        # Logic: show checkboxes only at scroll bottom
         def check_scroll():
             scroll = license_box.verticalScrollBar()
             if scroll.value() == scroll.maximum():
-                checkbox.setVisible(True)
+                accept_checkbox.setVisible(True)
+                decline_checkbox.setVisible(True)
 
-        license_box.verticalScrollBar().valueChanged.connect(lambda: check_scroll())
+        license_box.verticalScrollBar().valueChanged.connect(check_scroll)
+
+        # Disable accept if decline is checked and vice versa
+        def sync_checkboxes():
+            if accept_checkbox.isChecked():
+                decline_checkbox.setChecked(False)
+            if decline_checkbox.isChecked():
+                accept_checkbox.setChecked(False)
+
+            # Enable button only if one of them is checked
+            button.setEnabled(accept_checkbox.isChecked() or decline_checkbox.isChecked())
+
+        accept_checkbox.stateChanged.connect(sync_checkboxes)
+        decline_checkbox.stateChanged.connect(sync_checkboxes)
 
         layout.addWidget(license_box)
-        layout.addWidget(checkbox)
+        layout.addWidget(accept_checkbox)
+        layout.addWidget(decline_checkbox)
         layout.addWidget(button)
 
         container = QDialog()
         container.setLayout(layout)
 
-        if "general" in checkbox_text:
-            button.clicked.connect(self.show_page2)
+        if "general" in accept_text:
+            def next_step():
+                if decline_checkbox.isChecked():
+                    if self.confirm_exit():
+                        self.reject()
+                else:
+                    self.show_page2()
+            button.clicked.connect(next_step)
         else:
-            button.clicked.connect(self.accept)
+            def final_step():
+                if decline_checkbox.isChecked():
+                    if self.confirm_exit():
+                        self.reject()
+                else:
+                    self.accept()
+            button.clicked.connect(final_step)
 
         return container
+
+    def confirm_exit(self):
+        reply = QMessageBox.question(
+            self,
+            "Are you sure?",
+            "You have selected 'I do not accept'. This will close the application.\nDo you really want to exit?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        return reply == QMessageBox.Yes
 
     def show_page1(self):
         self.stack.setCurrentWidget(self.page1)
