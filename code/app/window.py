@@ -1,9 +1,12 @@
+import os
+import sys
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QLabel
 from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QRect
 from app.ui.chatbar import create_chat_bar
 from app.ui.topbar import create_top_bar
 from app.ui.bubble import create_chat_bubble
 from core.use_model import ask_model
+from app.ui.terms_dialog import TermsDialog
 
 class ChatApp(QWidget):
     def __init__(self):
@@ -12,6 +15,7 @@ class ChatApp(QWidget):
         self.setMinimumSize(500, 600)
 
         self.init_ui()
+        self.check_license_agreement()
 
     def init_ui(self):
         self.layout = QVBoxLayout(self)
@@ -47,6 +51,30 @@ class ChatApp(QWidget):
         self.chat_area = None
         self.scroll = None
         self.typing_label = None
+
+
+    def check_license_agreement(self):
+        if not os.path.exists(".accepted_terms"):
+            from app.ui.terms_dialog import TermsDialog
+
+            try:
+                with open("LICENSE", "r") as f1, open("LLAMA 3.2 COMMUNITY LICENSE AGREEMENT", "r") as f2:
+                    license1 = f1.read()
+                    license2 = f2.read()
+            except FileNotFoundError:
+                license1 = "LICENSE file not found."
+                license2 = "LLAMA license file not found."
+
+            dialog = TermsDialog(license1, license2, self)
+            if dialog.exec_():
+                with open(".accepted_terms", "w") as f:
+                    f.write("accepted")
+            else:
+                print("User declined terms.")
+                sys.exit(0)
+
+
+
 
     def setup_chat_ui(self):
         # Remove the placeholder widget (with label + chatbar)
