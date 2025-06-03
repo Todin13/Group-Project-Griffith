@@ -14,6 +14,11 @@ INDEX_FILE = os.path.join(INDEX_DIR, "griffith_index.faiss")
 ID_MAP_FILE = os.path.join(INDEX_DIR, "id_map.json")
 TEXT_STORE_FILE = os.path.join(INDEX_DIR, "text_store.json")
 
+IMAGE_RECORDS_FILE = "data/img_chuncks.json"
+IMAGE_INDEX_FILE = os.path.join(INDEX_DIR, "griffith_image_index.faiss")
+IMAGE_ID_MAP_FILE = os.path.join(INDEX_DIR, "image_id_map.json")
+IMAGE_STORE_FILE = os.path.join(INDEX_DIR, "image_store.json")
+
 # === Embedding Model ===
 EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
@@ -23,7 +28,8 @@ DEBUG_LOG_FILE = os.path.join(BASE_DIR, "debug.log")
 
 # === Pinecone ===
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
-PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "griffith-college-chunks")
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "griffith-college")
+PINECONE_IMAGE_INDEX_NAME = os.getenv("PINECONE_IMAGE_INDEX_NAME", "griffith-college-images")
 PINECONE_NAMESPACE = os.getenv("PINECONE_NAMESPACE", "200-history")
 
 # === HuggingFace ===
