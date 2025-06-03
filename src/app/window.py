@@ -9,6 +9,7 @@ from src.app.ui.terms_dialog import TermsDialog
 from src.core.local_llm import local_llm_question
 from src.core.api_llm import api_llm_question
 from src.core.pinecone_retrival import get_context_retrieval  # or faiss_retrieval
+import markdown
 
 
 def choose_model(user_input):
@@ -197,33 +198,32 @@ class ChatApp(QWidget):
             self.typing_label = None
 
         # Prepare for animation
-        self.bot_response = response
+        self.partial_response = ""
         self.char_index = 0
+        self.bot_response = response  # full markdown text
 
-        # Add the bot message bubble with empty text first
         self.animated_bubble = Bubble("", is_user=False)
         container = QHBoxLayout()
         container.addWidget(self.animated_bubble)
         container.addStretch()
-
         wrapper = QWidget()
         wrapper.setLayout(container)
-
         self.chat_area.addWidget(wrapper)
-        self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
 
-        # Animate the typing effect
         self.timer = QTimer()
         self.timer.timeout.connect(self.animate_bot_typing)
-        self.timer.start(30)  # adjust typing speed
+        self.timer.start(30)
+
 
     def animate_bot_typing(self):
         if self.char_index < len(self.bot_response):
-            # Append the next character to the bubble text
-            current_text = self.animated_bubble.text()
-            self.animated_bubble.setText(current_text + self.bot_response[self.char_index])
-
+            # Accumulate response progressively
+            self.partial_response += self.bot_response[self.char_index]
             self.char_index += 1
+
+            # Convert markdown to HTML
+            html = markdown.markdown(self.partial_response)
+            self.animated_bubble.setText(html)
         else:
             # Stop the timer when done
             self.timer.stop()
