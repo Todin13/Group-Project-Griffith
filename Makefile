@@ -25,6 +25,7 @@ data-transfo:
 	cd data && \
 	pdftotext "Griffith College 200 Years.pdf" && \
 	pdfimages -j "Griffith College 200 Years.pdf" griffith_img/Griffith_history && \
+	../src/pdf_manipulation/convert_ppm_to_jpeg.sh	griffith_img && \
 	../src/pdf_manipulation/pdf_to_chunk.sh
 
 check:
