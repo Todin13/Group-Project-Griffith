@@ -6,14 +6,16 @@ A practical exploration of Retrieval-Augmented Generation (RAG) using PDF data, 
 
 To extract and prepare the content from PDF files, the project uses several shell scripts and tools:
 
-| Tool / Script                                                | Purpose                                                           |
-| ------------------------------------------------------------ | ----------------------------------------------------------------- |
-| [pdfimages](https://www.xpdfreader.com/pdfimages-man.html)   | Extract images from PDFs                                          |
-| [pdftotext](https://www.xpdfreader.com/pdftotext-man.html)   | Extract raw text from PDFs                                        |
-| [clean.sh](./code/pdf_manipulation/clean.sh)                 | Clean and sanitize the extracted text                             |
-| [split_txt.sh](./code/pdf_manipulation/split_txt.sh)         | Split text into chapters, summaries, and bibliographies           |
-| [create_chunks.sh](./code/pdf_manipulation/create_chunks.sh) | Break the text into chunks suitable for embedding                 |
-| [pdf_to_chunk.sh](./code/pdf_manipulation/pdf_to_chunk.sh)   | Master script: combines cleaning, splitting, and chunking for RAG |
+| Tool / Script                                                            | Purpose                                                             |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------- | --- |
+| [pdfimages](https://www.xpdfreader.com/pdfimages-man.html)               | Extract images from PDFs                                            |
+| [pdftotext](https://www.xpdfreader.com/pdftotext-man.html)               | Extract raw text from PDFs                                          |
+| [magick](https://imagemagick.org/index.php)                              | CLI tool from ImageMagick used to convert and process image formats |     |
+| [clean.sh](./code/pdf_manipulation/clean.sh)                             | Clean and sanitize the extracted text                               |
+| [split_txt.sh](./code/pdf_manipulation/split_txt.sh)                     | Split text into chapters, summaries, and bibliographies             |
+| [create_chunks.sh](./code/pdf_manipulation/create_chunks.sh)             | Break the text into chunks suitable for embedding                   |
+| [pdf_to_chunk.sh](./code/pdf_manipulation/pdf_to_chunk.sh)               | Master script: combines cleaning, splitting, and chunking for RAG   |
+| [convert_ppm_to_jpeg.sh](./code/pdf_manipulation/convert_ppm_to_jpeg.sh) | Convert `.ppm` images (from `pdfimages`) to `.jpg` format           |
 
 ## 🧠 Model Choices
 
@@ -135,15 +137,15 @@ The project is organized as follows:
         │   ├── faiss/                              # FAISS-based local vector database alternative
         │   ├── pdf_manipulation/                   # Scripts to clean, split, and chunk PDF data
         │   ├── pinecone/                           # Pinecone vector DB configuration and indexing logic
-        │   ├── config.py                            # Configuration management (login key, data-folder, ...)
+        │   ├── config.py                           # Configuration management (login key, data-folder, ...)
         │   └── main.py                             # Entry point: application bootstrap and launch logic
         │
         ├── .env.example                            # Example environment configuration file
         ├── .gitignore                              # Git configuration to ignore local/dev files
-        ├── Griffith College 200 Years.pdf            # Source document used in the RAG pipeline
+        ├── Griffith College 200 Years.pdf          # Source document used in the RAG pipeline
         ├── LICENSE                                 # Open-source project license
         ├── LLAMA 3.2 COMMUNITY LICENSE AGREEMENT   # Required license agreement for using LLaMA 3.2 models
-        ├── Makefile                                 # Automation commands for setup, data processing, and deployment
+        ├── Makefile                                # Automation commands for setup, data processing, and deployment
         ├── pyproject.toml                          # Poetry project configuration and dependencies
         ├── README.md                               # Project documentation
 

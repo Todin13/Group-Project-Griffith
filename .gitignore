@@ -1,11 +1,22 @@
-.env
+# Python virtual environments and Poetry
 .venv
+.poetry
 poetry.lock
 .python-version
-results/*
-griffith_history/*
+
+# Environment files
+.env
+
+# Build and Python bytecode caches
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# Application-specific ignores
+data/results/*
+data/griffith_img/*
+paraph
 pinecone_records.json
 debug.log
 Griffith College 200 Years.txt
 LOCAL_RAG
-__pycache__

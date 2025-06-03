@@ -61,7 +61,7 @@ first=true
 
 # Process all .txt files in the directory
 find "$DIR" -type f -name "*.txt" | while read -r filepath; do
-    filename=$(basename "$filepath" .txt)
+    filename=$(basename "$filepath" .txt | sed 's/^[0-9]\+_//')
     content=$(<"$filepath")
 
     # Skip completely if image_description or summary_cleaned
