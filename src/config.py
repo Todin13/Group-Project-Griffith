@@ -29,7 +29,9 @@ DEBUG_LOG_FILE = os.path.join(BASE_DIR, "debug.log")
 # === Pinecone ===
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "griffith-college")
-PINECONE_IMAGE_INDEX_NAME = os.getenv("PINECONE_IMAGE_INDEX_NAME", "griffith-college-images")
+PINECONE_IMAGE_INDEX_NAME = os.getenv(
+    "PINECONE_IMAGE_INDEX_NAME", "griffith-college-images"
+)
 PINECONE_NAMESPACE = os.getenv("PINECONE_NAMESPACE", "200-history")
 
 # === HuggingFace ===

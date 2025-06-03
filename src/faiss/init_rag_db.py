@@ -73,10 +73,7 @@ print(f"🧭 Saved image ID mapping to '{config.IMAGE_ID_MAP_FILE}'")
 
 # Save image metadata
 image_store = {
-    str(i): {
-        "id": image_ids[i],
-        "description": image_texts[i]
-    }
+    str(i): {"id": image_ids[i], "description": image_texts[i]}
     for i in range(len(image_ids))
 }
 with open(config.IMAGE_STORE_FILE, "w", encoding="utf-8") as f:

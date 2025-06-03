@@ -29,6 +29,7 @@ print(f"📚 Loaded {len(text_records)} text records")
 # Target the text index
 text_index = pc.Index(config.PINECONE_INDEX_NAME)
 
+
 # Prepare and upsert text records
 def prepare_text_records(records):
     return [
@@ -40,9 +41,11 @@ def prepare_text_records(records):
         for r in records
     ]
 
+
 def batch_iterable(iterable, batch_size=96):
     for i in range(0, len(iterable), batch_size):
-        yield iterable[i:i + batch_size]
+        yield iterable[i : i + batch_size]
+
 
 for batch in batch_iterable(prepare_text_records(text_records)):
     text_index.upsert_records(config.PINECONE_NAMESPACE, batch)
@@ -69,15 +72,11 @@ print(f"🖼️ Loaded {len(image_records)} image records")
 # Target the image index
 image_index = pc.Index(config.PINECONE_IMAGE_INDEX_NAME)
 
+
 # Prepare and upsert image records
 def prepare_image_records(records):
-    return [
-        {
-            "_id": r["id"],
-            "description": r.get("description", "")
-        }
-        for r in records
-    ]
+    return [{"_id": r["id"], "description": r.get("description", "")} for r in records]
+
 
 for batch in batch_iterable(prepare_image_records(image_records)):
     image_index.upsert_records(config.PINECONE_NAMESPACE, batch)

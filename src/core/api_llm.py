@@ -2,7 +2,7 @@ from huggingface_hub import InferenceClient
 import logging
 import time
 import src.config as config
-from src.core.pinecone_retrival import get_context_retrieval
+from src.core.pinecone_retrieval import get_context_retrieval
 from src.core.question_analysis import is_about_chatbot
 
 # Setup logging
@@ -34,9 +34,11 @@ def api_llm_question(user_input: str, get_context_retrieval):
 
     if is_about_chatbot(user_input):
         # Detect if user is asking about the chatbot
-        context = ("You are GriffithBot, a helpful assistant that only answers questions related to the history of Griffith College, "
-        "its campus, buildings, people, and events. If a user asks a question unrelated to Griffith College, politely "
-        "refuse to answer and remind them of your specialty.")
+        context = (
+            "You are GriffithBot, a helpful assistant that only answers questions related to the history of Griffith College, "
+            "its campus, buildings, people, and events. If a user asks a question unrelated to Griffith College, politely "
+            "refuse to answer and remind them of your specialty."
+        )
     else:
         # Use RAG for Griffith College-related questions
         # Get context
@@ -44,7 +46,6 @@ def api_llm_question(user_input: str, get_context_retrieval):
             user_input, top_k=5
         )
         context = "\n\n".join(context_chunks)
-        
 
     messages = [
         system_message,
