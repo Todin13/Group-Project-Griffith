@@ -151,6 +151,64 @@ The project is organized as follows:
 
 Each directory and file is purposefully designed to keep the app modular, easy to maintain, and scalable for LLM-powered applications using Retrieval-Augmented Generation (RAG).
 
+## 🖼️ PyQt Desktop Application
+
+The project includes a desktop graphical interface built with **PyQt5**, designed to make the chatbot feel intuitive and modern — similar to popular AI chat apps.
+
+### 💡 App Features
+
+| Feature                        | Description                                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------------------------- |
+| 🪟 PyQt-based GUI              | Responsive and styled with flexible layouts                                                 |
+| 💬 Chat bubble display         | User and assistant messages are rendered in styled speech bubbles with name annotations     |
+| ✍️ Typing animation            | Assistant answers are typed out letter by letter to simulate thinking                       |
+| 📜 First-launch license screen | Displays the full text of LICENSE and LLaMA agreement before allowing app usage             |
+| ⚙ Settings dropdown            | Allows the user to view terms again, or change the active model (local or cloud-based)      |
+| 🔐 API key input               | If the cloud model is selected, user is prompted to input and save their Hugging Face token |
+
+The entire interface is modular, clean, and ready for scaling with additional settings, themes, or history persistence.
+
+---
+
+## 📦 Python Dependencies Explained
+
+Here’s a breakdown of every library listed in [`pyproject.toml`](./pyproject.toml) and their purpose in this project:
+
+| Package                   | Purpose                                                                                       |
+| ------------------------- | --------------------------------------------------------------------------------------------- |
+| **torch**                 | Used for running LLMs locally via PyTorch-backed models                                       |
+| **transformers**          | Hugging Face’s library for model loading, tokenization, generation                            |
+| **sentence-transformers** | Provides powerful embeddings for vector indexing (e.g., MiniLM, BGE)                          |
+| **tqdm**                  | Adds elegant progress bars during PDF processing and chunking workflows                       |
+| **accelerate**            | Speeds up multi-device (CPU/GPU) execution of LLMs and pipelines                              |
+| **scikit-learn**          | Required by sentence-transformers and some vector similarity utilities                        |
+| **pymupdf**               | Extracts text from PDFs (used instead of `PyPDF2` for better layout and font handling)        |
+| **langchain**             | Provides RAG orchestration tools (chains, retrievers, prompt templates, etc.)                 |
+| **black**                 | Code formatter to ensure clean, consistent style across scripts                               |
+| **vulture**               | Detects unused Python code for cleanup and optimization                                       |
+| **python-dotenv**         | Loads secret environment variables from `.env` file (e.g., API keys)                          |
+| **pinecone**              | Used for sending chunks to Pinecone’s vector database and retrieving top-K relevant matches   |
+| **faiss-cpu**             | Local alternative to Pinecone for vector storage and similarity search (offline mode support) |
+| **pyqt5**                 | Core GUI library for the desktop application (chat interface, forms, settings dropdown, etc.) |
+
+---
+
+## 🧠 LLM Control via UI
+
+The desktop app allows the user to choose the model backend from the GUI:
+
+- `"local"` → uses a LLaMA-based model installed locally (no internet required)
+- `"api"` → sends the question to Hugging Face's Inference API and returns the generated response
+
+The selected option and API key are stored in a `.model_config` file like this:
+
+```ini
+MODEL_TYPE=api
+INFERENCE_API_KEY=hf_xxx...
+```
+
+This file is automatically created and updated when the user interacts with the model settings menu in the GUI.
+
 ## ✅ Summary
 
 | Component             | Description                                                                                                                                                       |
