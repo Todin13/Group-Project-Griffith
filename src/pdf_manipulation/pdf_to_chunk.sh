@@ -39,7 +39,7 @@ for arg in "$@"; do
 done
 
 # splitting by chapter, summary, conclusion, introduction
-./src/pdf_manipulation/split_txt.sh Griffith\ College\ 200\ Years.txt result "Chapter " 119 2720
+../src/pdf_manipulation/split_txt.sh Griffith\ College\ 200\ Years.txt result "Chapter " 119 2720
 
 # cleaning files one by one
 for file in results/*; do
@@ -47,7 +47,7 @@ for file in results/*; do
   echo "Processing $file"
 
   # run cleaning scrit
-  ./src/pdf_manipulation/clean.sh "$file"
+  ../src/pdf_manipulation/clean.sh "$file"
 done
 
 # delete files without "_cleaned" if enabled
@@ -141,4 +141,4 @@ for file in results/*; do
 
 done
 
-./src/pdf_manipulation/create_chunks.sh results/
+../src/pdf_manipulation/create_chunks.sh results/

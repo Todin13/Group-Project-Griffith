@@ -21,8 +21,11 @@ faiss-purge:
 	poetry run python -m src.faiss.delete_rag_db
 
 data-transfo:
-	pdftotext Griffith\ College\ 200\ Years.pdf
-	./src/pdf_manipulation/pdf_to_chunk.sh
+	mkdir -p data/griffith_img
+	cd data && \
+	pdftotext "Griffith College 200 Years.pdf" && \
+	pdfimages -j "Griffith College 200 Years.pdf" griffith_img/Griffith_history && \
+	../src/pdf_manipulation/pdf_to_chunk.sh
 
 check:
 	@echo "Running Black"

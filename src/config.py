@@ -9,7 +9,7 @@ load_dotenv()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 INDEX_DIR = os.path.join(BASE_DIR, "LOCAL_RAG")
 
-RECORDS_FILE = "pinecone_records.json"
+RECORDS_FILE = "data/pinecone_records.json"
 INDEX_FILE = os.path.join(INDEX_DIR, "griffith_index.faiss")
 ID_MAP_FILE = os.path.join(INDEX_DIR, "id_map.json")
 TEXT_STORE_FILE = os.path.join(INDEX_DIR, "text_store.json")
