@@ -22,3 +22,4 @@ Griffith College 200 Years.txt
 LOCAL_RAG
 __pycache__
 .accepted_terms
+.model_config
