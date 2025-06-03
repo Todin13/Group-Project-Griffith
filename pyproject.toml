@@ -23,6 +23,7 @@ pinecone = "^7.0.1"
 faiss-cpu = "^1.11.0"
 pyqt5 = "^5.15.11"
 markdown = "^3.8"
+markdown2 = "^2.5.3"
 
 [build-system]
 requires = ["poetry-core"]

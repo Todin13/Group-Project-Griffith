@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
-import markdown
+import markdown2
 
 
 class Bubble(QLabel):
@@ -10,7 +10,7 @@ class Bubble(QLabel):
         self.setWordWrap(True)
         self.setFont(QFont("Arial", 10))
         self.setMargin(10)
-        self.setMaximumWidth(400)
+        self.setMaximumWidth(700)
         self.setStyleSheet(
             "QLabel {"
             f"background-color: {"#A52A2A" if is_user else "#808080"};"
@@ -24,5 +24,5 @@ class Bubble(QLabel):
         self.set_markdown(text)
 
     def set_markdown(self, text):
-        html = markdown.markdown(text)
+        html = markdown2.markdown(text)
         self.setText(html)

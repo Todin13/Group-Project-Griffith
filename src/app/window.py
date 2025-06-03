@@ -6,10 +6,11 @@ from src.app.ui.chatbar import create_chat_bar
 from src.app.ui.topbar import create_top_bar
 from src.app.ui.bubble import Bubble
 from src.app.ui.terms_dialog import TermsDialog
+from src.core.faiss_retrieval import get_image_context_retrieval
 from src.core.local_llm import local_llm_question
 from src.core.api_llm import api_llm_question
-from src.core.pinecone_retrival import get_context_retrieval  # or faiss_retrieval
-import markdown
+from src.core.pinecone_retrieval import get_context_retrieval  # or faiss_retrieval
+import markdown2
 
 
 def choose_model(user_input):
@@ -106,6 +107,7 @@ class ChatApp(QWidget):
         self.chat_area = QVBoxLayout()
         self.chat_area.setAlignment(Qt.AlignTop)
 
+        
         self.scroll_widget = QWidget()
         self.scroll_widget.setLayout(self.chat_area)
 
@@ -173,6 +175,7 @@ class ChatApp(QWidget):
 
     def add_message(self, message, is_user):
         bubble = Bubble(message, is_user)
+        
         container = QHBoxLayout()
         if is_user:
             container.addStretch()
@@ -184,11 +187,19 @@ class ChatApp(QWidget):
         wrapper = QWidget()
         wrapper.setLayout(container)
         self.chat_area.addWidget(wrapper)
+
+        # Ensure scrolling is correct
         self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
+
+        # Delay applying the max width to allow layout to finish
+        QTimer.singleShot(0, lambda: bubble.setMaximumWidth(int(self.scroll.viewport().width() * 0.75)))
+
+
 
     from PyQt5.QtCore import QTimer
 
     def fetch_and_display_response(self, user_input):
+        self.last_user_input = user_input
         # Get the model's response
         response = choose_model(user_input).strip()
 
@@ -215,6 +226,7 @@ class ChatApp(QWidget):
         self.timer.start(30)
 
 
+
     def animate_bot_typing(self):
         if self.char_index < len(self.bot_response):
             # Accumulate response progressively
@@ -222,13 +234,41 @@ class ChatApp(QWidget):
             self.char_index += 1
 
             # Convert markdown to HTML
-            html = markdown.markdown(self.partial_response)
+            html = markdown2.markdown(self.partial_response)
             self.animated_bubble.setText(html)
+
+            # Scroll to the bottom
+            self.scroll.verticalScrollBar().setValue(
+                self.scroll.verticalScrollBar().maximum()
+            )
+
         else:
-            # Stop the timer when done
+            # Typing done: stop timer
             self.timer.stop()
             self.timer.deleteLater()
             self.timer = None
 
-        # Scroll to the bottom
-        self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
+            try:
+                # ✅ Only now call image retrieval ONCE
+                context_images, *_ = get_image_context_retrieval(self.last_user_input, top_k=1)
+                if context_images:
+                    image = context_images[0]
+                    description = image["description"]
+                    image_path = image["image_path"]
+
+                    markdown = f"**Description**: {description}\n\n![Image]({image_path})"
+                    self.add_message(markdown, is_user=False)
+
+            except Exception as e:
+                print(f"[Image retrieval failed]: {e}")
+    
+    
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+
+        for i in range(self.chat_area.count()):
+            wrapper = self.chat_area.itemAt(i).widget()
+            if wrapper:
+                bubble = wrapper.findChild(Bubble)
+                if bubble:
+                    bubble.setMaximumWidth(int(self.scroll.viewport().width() * 0.75))
