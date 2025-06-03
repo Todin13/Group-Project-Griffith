@@ -1,39 +1,28 @@
-from PyQt5.QtWidgets import QLabel, QVBoxLayout, QWidget, QSizePolicy
+from PyQt5.QtWidgets import QLabel
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
+import markdown
 
-def create_chat_bubble(text, is_user=True, bot_name="GriffithAI"):
-    bubble = QLabel(text)
-    bubble.setObjectName("chat_text")
-    bubble.setWordWrap(True)
-    bubble.setFont(QFont("Arial", 11))
-    bubble.setTextInteractionFlags(Qt.TextSelectableByMouse)
-    bubble.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-    bubble.setMinimumWidth(200)
-    bubble.setMaximumWidth(500)
 
-    bubble.setStyleSheet(f"""
-        QLabel {{
-            background-color: {"#A52A2A" if is_user else "#808080"};
-            color: white;
-            border-radius: 15px;
-            padding: 12px;
-        }}
-    """)
+class Bubble(QLabel):
+    def __init__(self, text, is_user=True):
+        super().__init__(text)
+        self.setWordWrap(True)
+        self.setFont(QFont("Arial", 10))
+        self.setMargin(10)
+        self.setMaximumWidth(400)
+        self.setStyleSheet(
+            "QLabel {"
+            f"background-color: {"#A52A2A" if is_user else "#808080"};"
+            "border-radius: 10px;"
+            "padding: 5px;"
+            "color: white;"
+            "}"
+        )
+        self.setAlignment(Qt.AlignRight if is_user else Qt.AlignLeft)
 
-    layout = QVBoxLayout()
-    layout.setContentsMargins(10, 5, 10, 5)
+        self.set_markdown(text)
 
-    if not is_user:
-        name_label = QLabel(bot_name)
-        name_label.setFont(QFont("Arial", 9, QFont.Bold))
-        name_label.setStyleSheet("color: #444; margin-left: 6px;")
-        layout.addWidget(name_label, alignment=Qt.AlignLeft)
-
-    layout.addWidget(bubble, alignment=Qt.AlignRight if is_user else Qt.AlignLeft)
-
-    container = QWidget()
-    container.setLayout(layout)
-
-    return container, bubble
-
+    def set_markdown(self, text):
+        html = markdown.markdown(text)
+        self.setText(html)

@@ -1,10 +1,10 @@
 import os
 import sys
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QLabel
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QLabel, QHBoxLayout
 from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QRect
 from src.app.ui.chatbar import create_chat_bar
 from src.app.ui.topbar import create_top_bar
-from src.app.ui.bubble import create_chat_bubble
+from src.app.ui.bubble import Bubble
 from src.app.ui.terms_dialog import TermsDialog
 from src.core.local_llm import local_llm_question
 from src.core.api_llm import api_llm_question
@@ -105,13 +105,15 @@ class ChatApp(QWidget):
         self.chat_area = QVBoxLayout()
         self.chat_area.setAlignment(Qt.AlignTop)
 
-        self.scroll_content = QWidget()
-        self.scroll_content.setLayout(self.chat_area)
+        self.scroll_widget = QWidget()
+        self.scroll_widget.setLayout(self.chat_area)
 
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
-        self.scroll.setWidget(self.scroll_content)
-        self.layout.addWidget(self.scroll)
+        self.layout.insertWidget(1, self.scroll, stretch=1)
+
+        self.scroll.setWidget(self.scroll_widget)
+        self.scroll.setStyleSheet("border: none;")
 
         # Animate chatbar moving from center to bottom
 
@@ -122,6 +124,7 @@ class ChatApp(QWidget):
         self.animate_chatbar_transition()
 
         # Add chatbar at the bottom of main layout (below scroll)
+        
         self.layout.addWidget(self.chatbar_widget)
 
 
@@ -151,14 +154,15 @@ class ChatApp(QWidget):
 
         if self.chat_area is None:
             self.setup_chat_ui()
+        
+        if user_input:
+            self.add_message(user_input, is_user=True)
+            self.input_field.clear()
 
-        user_bubble, _ = create_chat_bubble(user_input, is_user=True)
-        self.chat_area.addWidget(user_bubble)
-
-        self.input_field.clear()
-
-        self.typing_label, _ = create_chat_bubble("GriffAI is typing...", is_user=False, bot_name="GriffithAI")
+        self.typing_label = QLabel("GriffithAI is typing...")
+        self.typing_label.setStyleSheet("color: gray; font-style: italic; margin: 10px;")
         self.chat_area.addWidget(self.typing_label)
+
 
         self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
 
@@ -166,32 +170,65 @@ class ChatApp(QWidget):
         QTimer.singleShot(100, lambda: self.fetch_and_display_response(user_input))
 
 
-    def fetch_and_display_response(self, user_input):
-        # Choose which model to call (you can make this dynamic later)
-        # Swap between `local_llm_question` or `api_llm_question` as needed
-        response = choose_model(user_input).strip()
+    def add_message(self, message, is_user):
+        bubble = Bubble(message, is_user)
+        container = QHBoxLayout()
+        if is_user:
+            container.addStretch()
+            container.addWidget(bubble)
+        else:
+            container.addWidget(bubble)
+            container.addStretch()
 
-
-        self.typing_label.deleteLater()
-
-        self.bot_response = response
-        self.char_index = 0
-        self.animated_bubble, self.label = create_chat_bubble("", is_user=False, bot_name="GriffithAI")
-        self.chat_area.addWidget(self.animated_bubble)
-
+        wrapper = QWidget()
+        wrapper.setLayout(container)
+        self.chat_area.addWidget(wrapper)
         self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
 
-        self.typing_timer = QTimer()
-        self.typing_timer.timeout.connect(self.animate_typing)
-        self.typing_timer.start(15)
+    from PyQt5.QtCore import QTimer
 
+    def fetch_and_display_response(self, user_input):
+        # Get the model's response
+        response = choose_model(user_input).strip()
 
+        # Remove typing indicator if it exists
+        if hasattr(self, 'typing_label') and self.typing_label:
+            self.typing_label.deleteLater()
+            self.typing_label = None
 
-    def animate_typing(self):
+        # Prepare for animation
+        self.bot_response = response
+        self.char_index = 0
+
+        # Add the bot message bubble with empty text first
+        self.animated_bubble = Bubble("", is_user=False)
+        container = QHBoxLayout()
+        container.addWidget(self.animated_bubble)
+        container.addStretch()
+
+        wrapper = QWidget()
+        wrapper.setLayout(container)
+
+        self.chat_area.addWidget(wrapper)
+        self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
+
+        # Animate the typing effect
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.animate_bot_typing)
+        self.timer.start(30)  # adjust typing speed
+
+    def animate_bot_typing(self):
         if self.char_index < len(self.bot_response):
-            self.label.setText(self.bot_response[:self.char_index + 1])
-            self.char_index += 1
-            self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
-        else:
-            self.typing_timer.stop()
+            # Append the next character to the bubble text
+            current_text = self.animated_bubble.text()
+            self.animated_bubble.setText(current_text + self.bot_response[self.char_index])
 
+            self.char_index += 1
+        else:
+            # Stop the timer when done
+            self.timer.stop()
+            self.timer.deleteLater()
+            self.timer = None
+
+        # Scroll to the bottom
+        self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
