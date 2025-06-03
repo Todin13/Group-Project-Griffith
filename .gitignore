@@ -3,7 +3,8 @@
 poetry.lock
 .python-version
 results/*
-griffith_history/*
+griffith_img/*
+paraph
 pinecone_records.json
 debug.log
 Griffith College 200 Years.txt

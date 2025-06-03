@@ -58,34 +58,86 @@ else
   echo "Keeping files without '_cleaned' in filename."
 fi
 
-# Rename and trim files starting with 'result_' in filename
+# Initialize counter
+count=1
+
+# Rename and trim files starting with 'result_'
 for file in results/result*; do
-  # check if it's a file (just in case)
+  # Check if it's a file
   if [[ ! -f "$file" ]]; then
     continue
   fi
 
+  # Extract second line, normalize spacing, and replace spaces with underscores
   newname=$(sed -n '2p' "$file" | tr -d '\r\n' | tr -s ' ' | tr ' ' '_')
+
   if [ -z "$newname" ]; then
     echo "Skipping $file, second line empty"
     continue
   fi
 
+  # Trim the file starting from the third line
   tail -n +3 "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
-  mv "$file" "results/${newname}.txt"
-  echo "Renamed and trimmed $file -> results/${newname}.txt"
+
+  # Construct new filename with count prefix
+  numbered_name="results/${count}_${newname}.txt"
+
+  # Rename the file
+  mv "$file" "$numbered_name"
+  echo "Renamed and trimmed $file -> $numbered_name"
+
+  # Increment counter
+  ((count++))
 done
 
-# remove the image description
 for file in results/*; do
   [[ -f "$file" ]] || continue
+  [[ "$(basename "$file")" == "summary_cleaned.txt" ]] && continue
   echo "Processing $file"
 
-  # extract image descriptions and append to central file
-  perl -00 -ne 'print if (() = /\n/g) < 11 && /(\(|above:|right:|left:|below:|view|pictured)/i' "$file" >> "$IMAGE_DESC_FILE"
+  # perl -00 -ne 'print "PARAGRAPH:\n[$_]\n\n"' "$file" >> paraph # debug only
 
-  # remove them from the original and overwrite
-  perl -00 -ne 'print unless (() = /\n/g) < 11 && /(\(|above:|right:|left:|below:|view|pictured)/i' "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
+  # extract image descriptions and append to central file
+  perl -00 -ne '
+    my $p = $_;
+    my $lines = () = $p =~ /\n/g;
+    my $words = scalar split /\s+/, $p;
+
+    if (
+      ($lines < 3 && $words < 16) ||  # one-line short paragraph — always match
+      (
+        $words < 50 &&
+        $lines < 12 &&
+        (
+          $p =~ /\(([^)]*(Ireland|Courtesy|Irish)[^)]*)\)/i ||
+          $p =~ /\b(view of|aerial view|above:|right:|left:|below:|pictured|caption reads:)/i
+        )
+      )
+    ) {
+      print $p;
+    }
+  ' "$file" >> "$IMAGE_DESC_FILE"
+
+  # remove them from original and overwrite
+  perl -00 -ne '
+    my $p = $_;
+    my $lines = () = $p =~ /\n/g;
+    my $words = scalar split /\s+/, $p;
+
+    unless (
+      ($lines < 3 && $words < 16) ||  # one-line short paragraph — always remove
+      (
+        $words < 50 &&
+        $lines < 12 &&
+        (
+          $p =~ /\(([^)]*(Ireland|Courtesy|Irish)[^)]*)\)/i ||
+          $p =~ /\b(view of|aerial view|above:|right:|left:|below:|pictured|caption reads:)/i
+        )
+      )
+    ) {
+      print $p;
+    }
+  ' "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
 
 done
 
