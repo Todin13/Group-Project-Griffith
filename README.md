@@ -7,10 +7,10 @@ A practical exploration of Retrieval-Augmented Generation (RAG) using PDF data, 
 To extract and prepare the content from PDF files, the project uses several shell scripts and tools:
 
 | Tool / Script                                                            | Purpose                                                             |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------- | --- |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------- |
 | [pdfimages](https://www.xpdfreader.com/pdfimages-man.html)               | Extract images from PDFs                                            |
 | [pdftotext](https://www.xpdfreader.com/pdftotext-man.html)               | Extract raw text from PDFs                                          |
-| [magick](https://imagemagick.org/index.php)                              | CLI tool from ImageMagick used to convert and process image formats |     |
+| [magick](https://imagemagick.org/index.php)                              | CLI tool from ImageMagick used to convert and process image formats |
 | [clean.sh](./code/pdf_manipulation/clean.sh)                             | Clean and sanitize the extracted text                               |
 | [split_txt.sh](./code/pdf_manipulation/split_txt.sh)                     | Split text into chapters, summaries, and bibliographies             |
 | [create_chunks.sh](./code/pdf_manipulation/create_chunks.sh)             | Break the text into chunks suitable for embedding                   |
