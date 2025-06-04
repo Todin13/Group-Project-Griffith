@@ -1,6 +1,5 @@
 prepare:
 	@echo "Preparing the set up"
-	poetry config virtualenvs.prefer-active-python true
 	poetry config virtualenvs.in-project true
 	poetry install --no-root
 
@@ -10,7 +9,7 @@ run:
 
 pinecone-populate:
 	poetry run python -m src.pinecone.init_rag_db
-
+	
 pinecone-purge:
 	poetry run python -m src.pinecone.delete_rag_db
 

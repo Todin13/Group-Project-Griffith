@@ -1,18 +1,11 @@
-from src.core.faiss_retrieval import get_context_retrieval
-from src.core.api_llm import api_llm_question
+from PyQt5.QtWidgets import QApplication
+import sys
+from src.app.ui.stylesheet import load_stylesheet
+from src.app.window import ChatApp  # You’ll need to implement this
 
 if __name__ == "__main__":
-    while True:
-
-        print(
-            "Griffith HistoryBot is ready. Ask about the campus' history! Type 'exit' to quit."
-        )
-
-        user_input = input("\n💬 You: ")
-        if user_input.lower() in {"exit", "quit"}:
-            print("👋 Goodbye! Stay curious about Griffith College.")
-            break
-
-        answer = api_llm_question(user_input, get_context_retrieval)
-
-        print("\n📚 GriffithBot:", answer)
+    app = QApplication(sys.argv)
+    app.setStyleSheet(load_stylesheet())
+    window = ChatApp()
+    window.show()
+    sys.exit(app.exec_())
