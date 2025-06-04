@@ -31,6 +31,7 @@ def get_context_retrieval(query, top_k=10):
     elapsed = end_time - start_time
 
     hits = reranked_results["result"].get("hits", [])
+    print(hits)
     context_chunks = [hit["fields"].get("chunk_text", "") for hit in hits]
 
     token_count = reranked_results.get("usage", {}).get("embed_total_tokens", "N/A")

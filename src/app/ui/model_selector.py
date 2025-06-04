@@ -41,29 +41,37 @@ class ModelSelectorDialog(QDialog):
 
     def save_settings(self):
         model_type = self.model_dropdown.currentText()
-        api_key = self.api_key_input.text().strip()
+        new_api_key = self.api_key_input.text().strip()
 
-        if model_type == "api" and not api_key:
+        # Load existing API key if present
+        existing_api_key = self.api_key  # From load_existing_config()
+
+        if model_type == "api" and not new_api_key:
             QMessageBox.warning(self, "Missing API Key", "Please enter a valid API key.")
             return
 
+        # Decide which API key to write
+        final_api_key = new_api_key if new_api_key else existing_api_key
+
         with open(CONFIG_FILE, "w") as f:
-            f.write(f"MODEL_TYPE={model_type}\\n")
-            if model_type == "api":
-                f.write(f"INFERENCE_API_KEY={api_key}\\n")
+            f.write(f"MODEL_TYPE={model_type}\n")
+            f.write(f"INFERENCE_API_KEY={final_api_key}\n")
 
         QMessageBox.information(self, "Saved", "Model settings saved successfully.")
         self.accept()
 
+
     def load_existing_config(self):
         if not os.path.exists(CONFIG_FILE):
             return
+
         with open(CONFIG_FILE, "r") as f:
-            lines = f.readlines()
-        for line in lines:
-            if line.startswith("MODEL_TYPE="):
-                self.selected_model = line.split("=")[-1].strip()
-                self.model_dropdown.setCurrentText(self.selected_model)
-            elif line.startswith("INFERENCE_API_KEY="):
-                self.api_key = line.split("=")[-1].strip()
-                self.api_key_input.setText(self.api_key)
+            for line in f:
+                if line.startswith("MODEL_TYPE="):
+                    self.selected_model = line.split("=", 1)[1].strip()
+                    self.model_dropdown.setCurrentText(self.selected_model)
+                elif line.startswith("INFERENCE_API_KEY="):
+                    self.api_key = line.split("=", 1)[1].strip()
+                    self.api_key_input.setText(self.api_key)
+
+        self.toggle_api_input(self.selected_model)

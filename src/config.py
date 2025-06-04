@@ -35,7 +35,16 @@ PINECONE_IMAGE_INDEX_NAME = os.getenv(
 PINECONE_NAMESPACE = os.getenv("PINECONE_NAMESPACE", "200-history")
 
 # === HuggingFace ===
-HF_API_KEY = os.getenv("INFERENCE_API_KEY", "")
+HF_API_KEY = ""
+
+# First, try loading from `.model_config`
+model_config_path = ".model_config"
+if os.path.exists(model_config_path):
+    with open(model_config_path, "r") as f:
+        for line in f:
+            if line.startswith("INFERENCE_API_KEY="):
+                HF_API_KEY = line.split("=", 1)[1].strip()
+                break
 
 # === Models ===
 LOCAL_MODEL = os.getenv("LOCAL_MODEL", "meta-llama/Llama-3.2-3B-Instruct")

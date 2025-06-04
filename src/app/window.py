@@ -6,28 +6,26 @@ from src.app.ui.chatbar import create_chat_bar
 from src.app.ui.topbar import create_top_bar
 from src.app.ui.bubble import Bubble
 from src.app.ui.terms_dialog import TermsDialog
-from src.core.faiss_retrieval import get_image_context_retrieval
+from src.core.faiss_retrieval import get_image_context_retrieval, get_context_retrieval
 from src.core.local_llm import local_llm_question
 from src.core.api_llm import api_llm_question
-from src.core.pinecone_retrieval import get_context_retrieval  # or faiss_retrieval
 import markdown2
 
 
 def choose_model(user_input):
-    model_type = "local"
-    api_key = None
+    model_type = "api"
+
     if os.path.exists(".model_config"):
         with open(".model_config", "r") as f:
             for line in f:
                 if line.startswith("MODEL_TYPE="):
-                    model_type = line.split("=")[1].strip()
-                elif line.startswith("INFERENCE_API_KEY="):
-                    api_key = line.split("=")[1].strip()
+                    model_type = line.split("=", 1)[1].strip()
 
     if model_type == "api":
-        return api_llm_question(user_input, get_context_retrieval, api_key)
+        return api_llm_question(user_input, get_context_retrieval)
     else:
         return local_llm_question(user_input, get_context_retrieval)
+
 
 
 class ChatApp(QWidget):
@@ -203,6 +201,8 @@ class ChatApp(QWidget):
         # Get the model's response
         response = choose_model(user_input).strip()
 
+        #response_dist = response["distance"]
+
         # Remove typing indicator if it exists
         if hasattr(self, 'typing_label') and self.typing_label:
             self.typing_label.deleteLater()
@@ -250,25 +250,19 @@ class ChatApp(QWidget):
 
             try:
                 # ✅ Only now call image retrieval ONCE
-                context_images, *_ = get_image_context_retrieval(self.last_user_input, top_k=1)
-                if context_images:
-                    image = context_images[0]
-                    description = image["description"]
-                    image_path = image["image_path"]
+                context_images, *_ = get_image_context_retrieval(self.last_user_input, top_k=10)
 
-                    markdown = f"**Description**: {description}\n\n![Image]({image_path})"
-                    self.add_message(markdown, is_user=False)
+                top_images = sorted(context_images, key=lambda x: x["distances"])[:3]
+
+                for image in top_images:
+                    print("[Image retrieval]:", image["description"], image["distances"])
+
+                    if image["distances"] < 0.8920:  # Seuil ajustable
+                        description = image["description"]
+                        image_path = image["image_path"]
+                        markdown = f"**Description**: {description}\n\n![Image]({image_path})"
+                        self.add_message(markdown, is_user=False)
+
 
             except Exception as e:
                 print(f"[Image retrieval failed]: {e}")
-    
-    
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-
-        for i in range(self.chat_area.count()):
-            wrapper = self.chat_area.itemAt(i).widget()
-            if wrapper:
-                bubble = wrapper.findChild(Bubble)
-                if bubble:
-                    bubble.setMaximumWidth(int(self.scroll.viewport().width() * 0.75))

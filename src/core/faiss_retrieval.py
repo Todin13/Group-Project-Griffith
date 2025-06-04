@@ -130,7 +130,7 @@ def get_image_context_retrieval(query, top_k=10):
             "data", "griffith_img", f"Griffith_history-{record_id}.jpg"
         )
 
-        context_images.append({"description": description, "image_path": image_path})
+        context_images.append({"description": description, "image_path": image_path, "distances": dist},)
 
         if config.LOG_LEVEL == "DEBUG":
             logger.debug(
